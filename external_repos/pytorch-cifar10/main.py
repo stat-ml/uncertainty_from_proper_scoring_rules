@@ -86,10 +86,11 @@ match architecture:
 # net = EfficientNetB0()
 # net = RegNetX_200MF()
 # net = SimpleDLA()
+print("Used device is ", device)
 net = net.to(device)
-if device == 'cuda':
-    net = torch.nn.DataParallel(net)
-    cudnn.benchmark = True
+#if device == 'cuda':
+#    net = torch.nn.DataParallel(net)
+#    cudnn.benchmark = True
 
 if args.resume:
     # Load checkpoint.
@@ -159,8 +160,8 @@ def test(epoch):
             'acc': acc,
             'epoch': epoch,
         }
-        if not os.path.exists(f'checkpoints/{architecture}/'):
-            os.makedirs(f'checkpoints/{architecture}/')
+        if not os.path.exists(f'checkpoints/{architecture}/{model_id}'):
+            os.makedirs(f'checkpoints/{architecture}/{model_id}')
         torch.save(state, f'./checkpoints/{architecture}/{model_id}/ckpt.pth')
         best_acc = acc
 

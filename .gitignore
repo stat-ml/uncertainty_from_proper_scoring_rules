@@ -1,3 +1,8 @@
+# Excluded path added manually
+external_repos/pytorch-cifar10/checkpoints/
+external_repos/pytorch-cifar10/data/
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
