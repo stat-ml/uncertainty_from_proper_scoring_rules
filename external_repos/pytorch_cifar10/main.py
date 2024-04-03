@@ -38,6 +38,7 @@ trainloader, testloader = get_dataloaders()
 
 
 print(f'Using {architecture} for training...')
+print(f'Using {loss_name} for training...')
 # Model
 print('==> Building model..')
 
