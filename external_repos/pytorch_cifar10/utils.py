@@ -6,10 +6,74 @@
 import os
 import sys
 import time
-import math
 
 import torch.nn as nn
 import torch.nn.init as init
+
+from models import *
+import torch
+import torchvision
+import torchvision.transforms as transforms
+
+def get_loss_function(loss_name: str) -> torch.nn.Module:
+    match loss_name:
+        case 'cross_entropy':
+            loss = nn.CrossEntropyLoss()
+        case _:
+            print("No such loss")
+            raise ValueError
+    return loss
+
+def get_model(architecture: str) -> nn.Module:
+    match architecture:
+        case 'vgg':
+            net = VGG('VGG19')
+        case 'resnet18':
+            net = ResNet18()
+        case _:
+            print("No such architecture")
+            raise ValueError()
+        # net = PreActResNet18()
+        # net = GoogLeNet()
+        # net = DenseNet121()
+        # net = ResNeXt29_2x64d()
+        # net = MobileNet()
+        # net = MobileNetV2()
+        # net = DPN92()
+        # net = ShuffleNetG2()
+        # net = SENet18()
+        # net = ShuffleNetV2(1)
+        # net = EfficientNetB0()
+        # net = RegNetX_200MF()
+        # net = SimpleDLA()
+    return net
+
+def get_dataloaders():
+    # Data
+    print('==> Preparing data..')
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+    trainset = torchvision.datasets.CIFAR10(
+        root='./data', train=True, download=True, transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(
+        trainset, batch_size=128, shuffle=True, num_workers=2)
+
+    testset = torchvision.datasets.CIFAR10(
+        root='./data', train=False, download=True, transform=transform_test)
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=100, shuffle=False, num_workers=2)
+
+    return trainloader, testloader
 
 
 def get_mean_and_std(dataset):
@@ -41,9 +105,11 @@ def init_params(net):
             if m.bias:
                 init.constant(m.bias, 0)
 
-
-_, term_width = os.popen('stty size', 'r').read().split()
-term_width = int(term_width)
+try:
+    _, term_width = os.popen('stty size', 'r').read().split()
+    term_width = int(term_width)
+except:
+    term_width = 167
 
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
