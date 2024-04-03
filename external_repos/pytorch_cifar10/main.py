@@ -5,7 +5,10 @@ import torch.optim as optim
 import os
 import argparse
 
-from utils import progress_bar, get_dataloaders, get_model, get_loss_function
+from utils import progress_bar, get_dataloaders, get_model
+import sys
+sys.path.insert(0, '../../src')
+from losses import get_loss_function 
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
@@ -13,7 +16,7 @@ parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--model_id', type=int, help='model id (for ensembles)')
 parser.add_argument('--architecture', choices=['resnet18', 'vgg'],
                     type=str, help='Model architecture.')
-parser.add_argument('--loss', choices=['cross_entropy'],
+parser.add_argument('--loss', choices=['cross_entropy', 'brier_score'],
                     type=str, help='Name of the loss function.')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')

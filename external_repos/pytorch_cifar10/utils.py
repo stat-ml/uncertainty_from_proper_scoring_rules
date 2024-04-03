@@ -15,15 +15,6 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-def get_loss_function(loss_name: str) -> torch.nn.Module:
-    match loss_name:
-        case 'cross_entropy':
-            loss = nn.CrossEntropyLoss()
-        case _:
-            print("No such loss")
-            raise ValueError
-    return loss
-
 def get_model(architecture: str) -> nn.Module:
     match architecture:
         case 'vgg':
