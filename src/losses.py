@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-
 import torch.nn.functional as F
+
 
 def targets2vector(targets: torch.Tensor, n_classes: int) -> torch.Tensor:
         # Ensure targets are one-hot encoded
@@ -41,6 +41,7 @@ class SphericalScoreLoss(nn.Module):
         loss = torch.mean(-torch.linalg.norm(targets) * torch.sum(
                 normed_predictions * normed_targets, dim=-1))
         return loss
+
 
 
 class NegLogScore(nn.Module):
@@ -117,5 +118,4 @@ def get_loss_function(loss_name: str) -> torch.nn.Module:
             print("No such loss")
             raise ValueError
     return loss
-
 
