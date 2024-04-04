@@ -16,51 +16,60 @@ class SphericalScoreLoss(nn.Module):
     def __init__(self):
         super(SphericalScoreLoss, self).__init__()
 
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
         """
         Calculate the Spherical Score Loss for multi-class classification
         
         Parameters:
-        - logits: Tensor of predicted logits for each class (as returned before a softmax function)
+        - inputs_: Tensor of predicted inputs 
         - targets: Tensor of actual labels, not one-hot encoded
+        - is_logit: Flag, true if logits provided
         
         Returns:
         - Spherical Score loss: Tensor
         """
-        n_classes = logits.size(1)
+        n_classes = inputs_.size(1)
         targets_vector = targets2vector(targets=targets, n_classes=n_classes)
-        predictions = F.softmax(logits, dim=-1)
+        if is_logit:
+            predictions = F.softmax(inputs_, dim=-1)
+        else:
+            predictions = inputs_
 
-        normed_targets = targets_vector / torch.linalg.norm(targets)
-        normed_predictions = predictions / torch.linalg.norm(predictions)
+        normed_targets = targets_vector / torch.linalg.norm(targets_vector, dim=-1, keepdim=True)
+        normed_predictions = predictions / torch.linalg.norm(predictions, dim=-1, keepdim=True)
 
-        loss = -torch.linalg.norm(targets) * torch.dot(normed_predictions,
-                                                       normed_targets)
+        loss = torch.mean(-torch.linalg.norm(targets) * torch.sum(
+                normed_predictions * normed_targets, dim=-1))
         return loss
 
 
 class NegLogScore(nn.Module):
     def __init__(self):
         super(NegLogScore, self).__init__()
-    
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+
+    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
         """
-        Calculate the Negative Logarithm Loss for multi-class classification
+        Calculate the NegLogScore Loss for multi-class classification
         
         Parameters:
-        - logits: Tensor of predicted logits for each class (as returned before a softmax function)
+        - inputs_: Tensor of predicted inputs 
         - targets: Tensor of actual labels, not one-hot encoded
+        - is_logit: Flag, true if logits provided
         
         Returns:
-        - Negative logarithm score loss: Tensor
+        - NegLogScore loss: Tensor
         """
-        n_classes = logits.size(1)
+        n_classes = inputs_.size(1)
         targets_vector = targets2vector(targets=targets, n_classes=n_classes)
-        predictions = F.softmax(logits, dim=-1)
+        
+        if is_logit:
+            predictions = F.softmax(inputs_, dim=-1)
+        else:
+            predictions = inputs_
 
-        loss = torch.sum(
+        loss = torch.mean(torch.sum(
                 torch.log(predictions) - 1 + targets_vector / predictions,
-                dim=-1) 
+                dim=-1))
         return loss
 
 
@@ -70,20 +79,26 @@ class BrierScoreLoss(nn.Module):
     def __init__(self):
         super(BrierScoreLoss, self).__init__()
     
-    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
         """
-        Calculate the Brier Score Loss for multi-class classification
+        Calculate the BrierScoreLoss for multi-class classification
         
         Parameters:
-        - logits: Tensor of predicted logits for each class (as returned before a softmax function)
+        - inputs_: Tensor of predicted inputs 
         - targets: Tensor of actual labels, not one-hot encoded
+        - is_logit: Flag, true if logits provided
         
         Returns:
-        - Brier score loss: Tensor
+        - BrierScore loss: Tensor
         """
-        n_classes = logits.size(1)
+        n_classes = inputs_.size(1)
         targets_vector = targets2vector(targets=targets, n_classes=n_classes)
-        predictions = F.softmax(logits, dim=-1)
+
+        if is_logit:
+            predictions = F.softmax(inputs_, dim=-1)
+        else:
+            predictions = inputs_
+
         loss = torch.mean(
                 torch.sum((predictions - targets_vector) ** 2, dim=-1)
                 )
