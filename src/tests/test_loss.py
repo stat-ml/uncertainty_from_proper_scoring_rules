@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '../')
 from losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss, targets2vector
 import numpy as np
 from torch.nn import CrossEntropyLoss
