@@ -1,4 +1,7 @@
 '''Train CIFAR10 with PyTorch.'''
+import sys
+sys.path.insert(0, '../../src')
+from losses import get_loss_function
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,18 +9,15 @@ import os
 import argparse
 
 from utils import progress_bar, get_dataloaders, get_model
-import sys
-sys.path.insert(0, '../../src')
-from losses import get_loss_function 
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-parser.add_argument('--model_id', type=int, help='model id (for ensembles)')
+parser.add_argument('--model_id', type=int, help='model id (for ensembles)', default=0)
 parser.add_argument('--architecture', choices=['resnet18', 'vgg'],
-                    type=str, help='Model architecture.')
+                    type=str, help='Model architecture.', default='resnet18')
 parser.add_argument('--loss', choices=['cross_entropy', 'brier_score', 'spherical_score', 'neglog_score'],
-                    type=str, help='Name of the loss function.')
+                    type=str, help='Name of the loss function.', default='spherical_score')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 args = parser.parse_args()
@@ -117,7 +117,8 @@ def test(epoch):
         }
         if not os.path.exists(f'checkpoints/{architecture}/{loss_name}/{model_id}'):
             os.makedirs(f'checkpoints/{architecture}/{loss_name}/{model_id}')
-        torch.save(state, f'./checkpoints/{architecture}/{loss_name}/{model_id}/ckpt.pth')
+        torch.save(
+            state, f'./checkpoints/{architecture}/{loss_name}/{model_id}/ckpt.pth')
         best_acc = acc
 
 

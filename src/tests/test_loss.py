@@ -1,9 +1,10 @@
 import sys
 sys.path.insert(0, '../')
-from losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss, targets2vector
-import numpy as np
-from torch.nn import CrossEntropyLoss
 import torch
+from torch.nn import CrossEntropyLoss
+import numpy as np
+from losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss, targets2vector
+
 
 def test_targets2vector():
     target = torch.LongTensor([5])
@@ -23,7 +24,8 @@ def test_target2vector_batch():
     target_vector = targets2vector(target, n_classes=10)
 
     assert torch.all(target_vector == torch.tensor([[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                                          [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]))
+                                                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]))
+
 
 def test_ce_loss():
     target = torch.LongTensor([3])
@@ -31,7 +33,7 @@ def test_ce_loss():
 
     predictions = torch.randn((1, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
+
     loss = CrossEntropyLoss()
     pred_loss = loss(predictions, target_vector)
     true_value = -torch.sum(target_vector * torch.log(pred_probs), dim=-1)
@@ -44,12 +46,12 @@ def test_ce_loss_batch():
 
     predictions = torch.randn((4, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
+
     loss = CrossEntropyLoss()
     pred_loss = loss(predictions, target_vector)
     true_value = -torch.mean(
-            torch.sum(target_vector * torch.log(pred_probs), dim=-1)
-            )
+        torch.sum(target_vector * torch.log(pred_probs), dim=-1)
+    )
     assert torch.isclose(pred_loss, true_value)
 
 
@@ -59,7 +61,7 @@ def test_brier_loss():
 
     predictions = torch.randn((1, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
+
     loss = BrierScoreLoss()
     pred_loss = loss(predictions, target_vector)
     true_value = torch.sum(torch.pow(target_vector - pred_probs, 2), dim=-1)
@@ -73,12 +75,12 @@ def test_brier_loss_batch():
 
     predictions = torch.randn((4, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
+
     loss = BrierScoreLoss()
     pred_loss = loss(predictions, target_vector)
     true_value = torch.mean(
-            torch.sum(torch.pow(target_vector - pred_probs, 2), dim=-1)
-            )
+        torch.sum(torch.pow(target_vector - pred_probs, 2), dim=-1)
+    )
     assert torch.isclose(pred_loss, true_value)
 
 
@@ -88,16 +90,16 @@ def test_spherical_score_loss():
 
     predictions = torch.randn((1, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
+
     loss = SphericalScoreLoss()
     pred_loss = loss(predictions, target_vector)
 
-    normed_pred = pred_probs / torch.norm(pred_probs)
-    normed_target = target_vector / torch.norm(target_vector)
+    normed_pred = pred_probs / torch.norm(pred_probs, p=2, dim=-1)
+    normed_target = target_vector / torch.norm(target_vector, p=2, dim=-1)
 
-
-    true_value = -torch.norm(target_vector) * torch.sum(
-            normed_pred * normed_target, dim=-1)
+    true_value = -torch.mean(
+        torch.norm(target_vector, p=2, dim=-1) * torch.sum(
+            normed_pred * normed_target, dim=-1))
 
     assert torch.isclose(pred_loss, true_value)
 
@@ -108,20 +110,21 @@ def test_spherical_score_loss_batch():
 
     predictions = torch.randn((4, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
-    loss =  SphericalScoreLoss()
+
+    loss = SphericalScoreLoss()
     pred_loss = loss(predictions, target_vector)
 
-    normed_pred = pred_probs / torch.norm(pred_probs, dim=-1, keepdim=True)
-    normed_target = target_vector / torch.norm(target_vector, dim=-1, keepdim=True)
-
+    normed_pred = pred_probs / torch.norm(pred_probs,
+                                          dim=-1, keepdim=True, p=2)
+    normed_target = target_vector / torch.norm(target_vector,
+                                               dim=-1, keepdim=True, p=2)
 
     true_value = torch.mean(
-            -torch.norm(target_vector) * torch.sum(
-                normed_pred * normed_target, dim=-1)
-            )
+        -torch.norm(target_vector, dim=-1, p=2) * torch.sum(
+            normed_pred * normed_target, dim=-1)
+    )
     assert torch.isclose(pred_loss, true_value)
-    
+
 
 def test_neglog_score_loss():
     target = torch.LongTensor([3])
@@ -129,11 +132,12 @@ def test_neglog_score_loss():
 
     predictions = torch.randn((1, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
+
     loss = NegLogScore()
     pred_loss = loss(predictions, target_vector)
 
-    true_value = torch.sum(torch.log(pred_probs) - 1 + target_vector / pred_probs, dim=-1)
+    true_value = torch.sum(torch.log(pred_probs) - 1 +
+                           target_vector / pred_probs, dim=-1)
 
     assert torch.isclose(pred_loss, true_value)
 
@@ -144,13 +148,14 @@ def test_neglog_score_loss_batch():
 
     predictions = torch.randn((4, 10))
     pred_probs = torch.softmax(predictions, dim=-1)
-    
-    loss =  NegLogScore()
+
+    loss = NegLogScore()
     pred_loss = loss(predictions, target_vector)
 
-    true_value = torch.mean(torch.sum(torch.log(pred_probs) - 1 + target_vector / pred_probs, dim=-1))
+    true_value = torch.mean(
+        torch.sum(torch.log(pred_probs) - 1 + target_vector / pred_probs, dim=-1))
     assert torch.isclose(pred_loss, true_value)
-    
+
 
 def test_specific_ce():
     inputs_ = torch.tensor([[0.1, 0.8, 0.1]])
@@ -159,12 +164,14 @@ def test_specific_ce():
     loss_pred = loss(inputs_, targets_).cpu().numpy().item()
     assert np.isclose(1.1797266409702165, loss_pred)
 
+
 def test_specific_brier():
     inputs_ = torch.tensor([[0.1, 0.8, 0.1]])
     targets_ = torch.tensor([[0.2, 0.3, 0.5]])
     loss = BrierScoreLoss()
     loss_pred = loss(inputs_, targets_, is_logit=False).cpu().numpy().item()
     assert np.isclose(0.42000000000000004, loss_pred)
+
 
 def test_specific_spherical():
     inputs_ = torch.tensor([[0.1, 0.8, 0.1]])
@@ -173,13 +180,13 @@ def test_specific_spherical():
     loss_pred = loss(inputs_, targets_, is_logit=False).cpu().numpy().item()
     assert np.isclose(-0.3815836220359314, loss_pred)
 
+
 def test_specific_neglog():
     inputs_ = torch.tensor([[0.1, 0.8, 0.1]])
     targets_ = torch.tensor([[0.2, 0.3, 0.5]])
     loss = NegLogScore()
     loss_pred = loss(inputs_, targets_, is_logit=False).cpu().numpy().item()
     assert np.isclose(-0.4533137373023006, loss_pred)
-
 
 
 if __name__ == "__main__":
