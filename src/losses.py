@@ -29,7 +29,7 @@ class SphericalScoreLoss(nn.Module):
         - Spherical Score loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = targets2vector(targets=targets, n_classes=n_classes)
+        targets_vector = 1. * targets2vector(targets=targets, n_classes=n_classes)
         if is_logit:
             predictions = F.softmax(inputs_, dim=-1)
         else:
@@ -38,7 +38,7 @@ class SphericalScoreLoss(nn.Module):
         normed_targets = targets_vector / torch.linalg.norm(targets_vector, dim=-1, keepdim=True)
         normed_predictions = predictions / torch.linalg.norm(predictions, dim=-1, keepdim=True)
 
-        loss = torch.mean(-torch.linalg.norm(targets) * torch.sum(
+        loss = torch.mean(-torch.linalg.norm(targets_vector) * torch.sum(
                 normed_predictions * normed_targets, dim=-1))
         return loss
 
