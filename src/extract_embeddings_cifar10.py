@@ -1,51 +1,74 @@
 import sys
 sys.path.insert(0, './')
+sys.path.insert(0, '.')
+import numpy as np
 import torch
+import torch.nn as nn
+import pickle
 from external_repos.pytorch_cifar10.utils import get_dataloaders, get_model
-
-####
-architecture = 'resnet18' 
-model_id = 0
-loss_function = "cross_entropy"
-####
+from tqdm.auto import tqdm
 
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-# Data
-trainloader, testloader = get_dataloaders()
+def load_model_checkpoint(architecture: str, path: str, device) -> nn.Module:
+    checkpoint = torch.load(path, map_location=device)
+    model = get_model(architecture=architecture)
+    model.load_state_dict(checkpoint['net'])
+    return model
 
 
-print(f'Using {architecture} for evaluation...')
-# Model
-print('==> Building model..')
+def make_load_path(
+        architecture: str,
+        loss_function: str,
+        model_id: int,
+):
+    return (f'./external_repos/'
+            'pytorch_cifar10/'
+            'checkpoints/'
+            f'{architecture}/{loss_function}/{model_id}/')
 
-net = get_model(architecture=architecture)
 
-print("Used device is ", device)
-net = net.to(device)
-#
+def extract_embeddings(
+        architecture: str,
+        loss_function: str,
+        model_id: int,
+):
+    load_path = make_load_path(
+        architecture=architecture,
+        loss_function=loss_function,
+        model_id=model_id
+    )
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = load_model_checkpoint(
+        architecture=architecture,
+        path=load_path + 'ckpt.pth',
+        device=device)
+    model = model.to(device)
+    _, testloader = get_dataloaders()
+    model.eval()
 
-def extract_embeddins():
-    global best_acc
-    net.eval()
-    test_loss = 0
-    correct = 0
-    total = 0
+    output_embeddings = {}
+    output_embeddings['embeddings'] = []
+    output_embeddings['labels'] = []
+
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
+        for _, (inputs, targets) in tqdm(enumerate(testloader)):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
+            outputs = model(inputs)
+            output_embeddings['embeddings'].append(outputs.cpu().numpy())
+            output_embeddings['labels'].append(targets.cpu().numpy())
+    output_embeddings['embeddings'] = np.vstack(
+        output_embeddings['embeddings'])
+    output_embeddings['labels'] = np.hstack(
+        output_embeddings['labels'])
 
-            test_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-
-            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                         % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    # Saving the dictionary to a file using pickle
+    with open((load_path + 'embeddings.pkl'), 'wb') as file:
+        pickle.dump(output_embeddings, file)
 
 
-
-
-print("Success!")
+if __name__ == '__main__':
+    extract_embeddings(
+        architecture='resnet18',
+        model_id=0,
+        loss_function='brier_score'
+    )

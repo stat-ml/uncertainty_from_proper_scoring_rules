@@ -10,10 +10,11 @@ import time
 import torch.nn as nn
 import torch.nn.init as init
 
-from models import *
+from .models import *
 import torch
 import torchvision
 import torchvision.transforms as transforms
+
 
 def get_model(architecture: str) -> nn.Module:
     match architecture:
@@ -39,6 +40,7 @@ def get_model(architecture: str) -> nn.Module:
         # net = SimpleDLA()
     return net
 
+
 def get_dataloaders():
     # Data
     print('==> Preparing data..')
@@ -46,12 +48,14 @@ def get_dataloaders():
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0.4914, 0.4822, 0.4465),
+                             (0.2023, 0.1994, 0.2010)),
     ])
 
     transform_test = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        transforms.Normalize((0.4914, 0.4822, 0.4465),
+                             (0.2023, 0.1994, 0.2010)),
     ])
 
     trainset = torchvision.datasets.CIFAR10(
@@ -69,17 +73,19 @@ def get_dataloaders():
 
 def get_mean_and_std(dataset):
     '''Compute the mean and std value of dataset.'''
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=True, num_workers=2)
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=1, shuffle=True, num_workers=2)
     mean = torch.zeros(3)
     std = torch.zeros(3)
     print('==> Computing mean and std..')
     for inputs, targets in dataloader:
         for i in range(3):
-            mean[i] += inputs[:,i,:,:].mean()
-            std[i] += inputs[:,i,:,:].std()
+            mean[i] += inputs[:, i, :, :].mean()
+            std[i] += inputs[:, i, :, :].std()
     mean.div_(len(dataset))
     std.div_(len(dataset))
     return mean, std
+
 
 def init_params(net):
     '''Init layer parameters.'''
@@ -96,6 +102,7 @@ def init_params(net):
             if m.bias:
                 init.constant(m.bias, 0)
 
+
 try:
     _, term_width = os.popen('stty size', 'r').read().split()
     term_width = int(term_width)
@@ -105,6 +112,8 @@ except:
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
 begin_time = last_time
+
+
 def progress_bar(current, total, msg=None):
     global last_time, begin_time
     if current == 0:
@@ -147,6 +156,7 @@ def progress_bar(current, total, msg=None):
     else:
         sys.stdout.write('\n')
     sys.stdout.flush()
+
 
 def format_time(seconds):
     days = int(seconds / 3600/24)
