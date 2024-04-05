@@ -29,7 +29,7 @@ class SphericalScoreLoss(nn.Module):
         - Spherical Score loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = targets2vector(targets=targets, n_classes=n_classes)
+        targets_vector = 1. * targets2vector(targets=targets, n_classes=n_classes)
         if is_logit:
             predictions = F.softmax(inputs_, dim=-1)
         else:
