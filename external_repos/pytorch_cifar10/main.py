@@ -16,7 +16,7 @@ parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--model_id', type=int, help='model id (for ensembles)')
 parser.add_argument('--architecture', choices=['resnet18', 'vgg'],
                     type=str, help='Model architecture.')
-parser.add_argument('--loss', choices=['cross_entropy', 'brier_score', 'spherical_score'],
+parser.add_argument('--loss', choices=['cross_entropy', 'brier_score', 'spherical_score', 'neglog_score'],
                     type=str, help='Name of the loss function.')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
