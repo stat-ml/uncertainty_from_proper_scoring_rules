@@ -197,7 +197,7 @@ if __name__ == '__main__':
     else:
        # checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.architecture, settings.TIME_NOW)
         checkpoint_path = os.path.join(
-            settings.CHECKPOINT_PATH, architecture, loss_function, model_id)
+            settings.CHECKPOINT_PATH, architecture, loss_name, model_id)
 
     # use tensorboard
     if not os.path.exists(settings.LOG_DIR):
