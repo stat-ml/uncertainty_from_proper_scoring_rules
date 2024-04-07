@@ -7,17 +7,21 @@ import torch.nn as nn
 import torch.optim as optim
 import os
 import argparse
-
 from utils import progress_bar, get_dataloaders, get_model
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-parser.add_argument('--model_id', type=int, help='model id (for ensembles)', default=0)
+parser.add_argument('--model_id', type=int,
+                    help='model id (for ensembles)', default=0)
 parser.add_argument('--architecture', choices=['resnet18', 'vgg'],
                     type=str, help='Model architecture.', default='resnet18')
-parser.add_argument('--loss', choices=['cross_entropy', 'brier_score', 'spherical_score', 'neglog_score'],
-                    type=str, help='Name of the loss function.', default='spherical_score')
+parser.add_argument('--loss',
+                    choices=['cross_entropy', 'brier_score',
+                             'spherical_score', 'neglog_score'],
+                    type=str,
+                    help='Name of the loss function.',
+                    default='neglog_score')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 args = parser.parse_args()
@@ -38,6 +42,7 @@ trainloader, testloader = get_dataloaders()
 
 
 print(f'Using {architecture} for training...')
+print(f'Current model id is {model_id}...')
 print(f'Using {loss_name} for training...')
 # Model
 print('==> Building model..')
@@ -103,8 +108,15 @@ def test(epoch):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                         % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+            progress_bar(
+                batch_idx,
+                len(testloader),
+                'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                % (test_loss/(batch_idx+1),
+                   100.*correct/total,
+                   correct,
+                   total)
+            )
 
     # Save checkpoint.
     acc = 100.*correct/total

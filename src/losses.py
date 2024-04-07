@@ -40,7 +40,7 @@ class SphericalScoreLoss(nn.Module):
 
         loss = torch.mean(
             -torch.sum(normed_predictions * targets_vector, dim=-1)
-            )
+        )
         return loss
 
 
@@ -48,7 +48,8 @@ class NegLogScore(nn.Module):
     def __init__(self):
         super(NegLogScore, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(self, inputs_: torch.Tensor,
+                targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
         """
         Calculate the NegLogScore Loss for multi-class classification
 
@@ -64,13 +65,19 @@ class NegLogScore(nn.Module):
         targets_vector = targets2vector(targets=targets, n_classes=n_classes)
 
         if is_logit:
+            logits = inputs_
             predictions = F.softmax(inputs_, dim=-1)
         else:
+            logits = torch.log(inputs_)
             predictions = inputs_
 
+        log_probs = logits - torch.logsumexp(
+            input=logits, dim=-1, keepdim=True)
+
         loss = torch.mean(torch.sum(
-            torch.log(predictions) - 1 + targets_vector / predictions,
+            log_probs - 1 + targets_vector / predictions,
             dim=-1))
+
         return loss
 
 
