@@ -10,7 +10,7 @@ import time
 import torch.nn as nn
 import torch.nn.init as init
 
-from models import *
+from .models import *
 import torch
 import torchvision
 import torchvision.transforms as transforms

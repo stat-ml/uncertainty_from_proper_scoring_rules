@@ -65,19 +65,24 @@ class NegLogScore(nn.Module):
         targets_vector = targets2vector(targets=targets, n_classes=n_classes)
 
         if is_logit:
-            logits = inputs_
             predictions = F.softmax(inputs_, dim=-1)
         else:
-            logits = torch.log(inputs_)
             predictions = inputs_
 
-        log_probs = logits - torch.logsumexp(
-            input=logits, dim=-1, keepdim=True)
+        coeff = ((predictions - targets_vector) / (predictions**2)).detach()
+        coeff = coeff * targets_vector
+        print(coeff.max())
+        print(coeff.min())
+        clipped_coeff = torch.clip(coeff, min=-1., max=1.)
+        print(clipped_coeff.max())
+        print(clipped_coeff.min())
 
-        loss = torch.mean(torch.sum(
-            log_probs - 1 + targets_vector / predictions,
-            dim=-1))
-
+        loss = torch.mean(
+            torch.sum(
+                clipped_coeff * predictions,
+                dim=-1
+            )
+        )
         return loss
 
 
