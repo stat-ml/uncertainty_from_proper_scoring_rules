@@ -57,6 +57,41 @@ def pairwise_spherical(logits_p, logits_q):
     return spherical_divs
 
 
+def entropy(probs):
+    return -np.sum(probs * np.log(probs), axis=-1)
+
+
+def entropy_average(logits_p, logits_q):
+    prob_p = safe_softmax(logits_p)
+    avg_predictions = np.mean(prob_p, axis=0)
+    return entropy(avg_predictions)
+
+
+def average_entropy(logits_p, logits_q):
+    prob_p = safe_softmax(logits_p)
+    individual_entropies = entropy(prob_p)
+    average_entropy_individual = np.mean(individual_entropies, axis=0)
+    return average_entropy_individual
+
+
+def mutual_information(logits_p, logits_q):
+    HE = entropy_average(logits_p, logits_p)
+    EH = average_entropy(logits_p, logits_p)
+
+    bald_scores = HE - EH
+
+    return bald_scores
+
+
+def reverse_mutual_information(logits_p, logits_q):
+    prob_p = safe_softmax(logits_p)
+    avg_predictions = np.mean(prob_p, axis=0, keepdims=True)
+    return np.mean(
+        np.sum(
+            avg_predictions * np.log(avg_predictions / prob_p), axis=-1
+        ), axis=0)
+
+
 def expected_pairwise_kl(
         logits_p: np.ndarray,
         logits_q: np.ndarray
@@ -84,11 +119,22 @@ def expected_pairwise_spherical(
     )
 
 
+def maxprob_average(logits_p, logits_1):
+    prob_p = safe_softmax(logits_p)
+    avg_predictions = np.mean(prob_p, axis=0)
+    return 1 - np.max(avg_predictions, axis=-1)
+
+
+def average_maxprob(logits_p, logits_1):
+    prob_p = safe_softmax(logits_p)
+    return np.mean(1 - np.max(prob_p, axis=-1), axis=0)
+
+
 if __name__ == '__main__':
     # Example usage
     N_members, N_objects, N_classes = 3, 40, 5  # Example dimensions
     A = np.random.randn(N_members, N_objects, N_classes)
     B = np.random.randn(N_members, N_objects, N_classes)
 
-    squared_dist_results = expected_pairwise_spherical(A, B)
+    squared_dist_results = average_maxprob(A, B)
     print(squared_dist_results.shape)
