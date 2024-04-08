@@ -37,7 +37,7 @@ def load_dataloader_for_extraction(
     if extraction_dataset_name == 'lsun':
         if training_dataset_name in ['cifar10', 'cifar100', 'svhn']:
             ind_transforms = transforms.Compose(
-                [transforms.Resize((32, 32))] + ind_transforms)
+                [transforms.Resize((32, 32))] + ind_transforms.transforms)
         dataset = torchvision.datasets.LSUN(
             root='./data',
             classes='test', transform=ind_transforms
