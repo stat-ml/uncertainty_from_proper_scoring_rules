@@ -1,9 +1,11 @@
 # Excluded path added manually
+external_repos/pytorch_cifar100/checkpoints/
 external_repos/pytorch_cifar10/checkpoints/
 external_repos/pytorch_cifar10/data/
 external_repos/FERPlus/
 data/
 notebooks/
+*.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
