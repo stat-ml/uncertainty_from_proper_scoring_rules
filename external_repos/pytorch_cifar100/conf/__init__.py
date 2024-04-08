@@ -2,6 +2,8 @@
 
 author baiyu
 """
+import sys
+sys.path.insert(0, './external_repos/pytorch_cifar100')
 import conf.global_settings as settings
 
 class Settings:
