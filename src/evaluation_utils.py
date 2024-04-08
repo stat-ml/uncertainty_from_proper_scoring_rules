@@ -1,27 +1,19 @@
-import sys
-from collections import defaultdict
-sys.path.insert(0, './')
-sys.path.insert(0, '.')
 from tqdm.auto import tqdm
-from external_repos.pytorch_cifar10.utils import get_dataloaders, get_model
+from external_repos.pytorch_cifar10.utils import (
+    get_model,
+)
 import pickle
 import json
 import torch.nn as nn
 import torch
 import numpy as np
 from sklearn.metrics import classification_report
+from data_utils import load_dataloader_for_extraction
 import os
-
-
-def load_dataloader_for_extraction(
-        dataset_name: str,) -> torch.utils.data.DataLoader:
-    if dataset_name == 'cifar10':
-        _, testloader = get_dataloaders()
-    elif dataset_name == 'cifar100':
-        pass
-    else:
-        raise ValueError
-    return testloader
+import sys
+from collections import defaultdict
+sys.path.insert(0, './')
+sys.path.insert(0, '.')
 
 
 def save_dict(save_path: str, dict_to_save: dict) -> None:
@@ -174,25 +166,30 @@ def make_load_path(
 def extract_embeddings(
         architecture: str,
         loss_function_name: str,
-        dataset_name: str,
+        training_dataset_name: str,
+        extraction_dataset_name: str,
         model_id: int,
 ):
     """The function extracts and save embeddings for a specific model
 
     Args:
         architecture (str): _description_
-        dataset_name (str): _description_
         loss_function_name (str): _description_
+        training_dataset_name (str): _description_
+        extraction_dataset_name (str): _description_
         model_id (int): _description_
     """
     load_path = make_load_path(
         architecture=architecture,
-        dataset_name=dataset_name,
+        dataset_name=training_dataset_name,
         loss_function_name=loss_function_name,
         model_id=model_id
     )
     checkpoint_path = os.path.join(load_path, 'ckpt.pth')
-    embeddings_path = os.path.join(load_path, 'embeddings.pkl')
+    embeddings_path = os.path.join(
+        load_path,
+        f'embeddings_{extraction_dataset_name}.pkl'
+    )
     if os.path.exists(embeddings_path):
         print('Embeddings are already extracted! Skipping...')
         return
@@ -205,7 +202,9 @@ def extract_embeddings(
 
     model.eval()
 
-    loader = load_dataloader_for_extraction(dataset_name=dataset_name)
+    loader = load_dataloader_for_extraction(
+        training_dataset_name=training_dataset_name,
+        extraction_dataset_name=extraction_dataset_name)
 
     output_embeddings = {}
     output_embeddings['embeddings'] = []
@@ -262,42 +261,49 @@ if __name__ == '__main__':
     # dataset_name = 'cifar10'
     model_ids = np.arange(20)
 
-    for dataset_name in ['cifar10']:
-        for loss_function_name in [
-            'brier_score',
-            'cross_entropy',
-            'spherical_score'
-        ]:
-            for model_id in model_ids:
-                print((
-                    f'Dataset: {dataset_name} ...'
-                    f'Loading {architecture}, '
-                    f'model_id={model_id} '
-                    f'and loss {loss_function_name}'
-                ))
-                print('Extracting embeddings....')
-                extract_embeddings(
-                    dataset_name=dataset_name,
-                    architecture=architecture,
-                    model_id=model_id,
-                    loss_function_name=loss_function_name
-                )
-                print('Finished embeddings extraction!')
+    for training_dataset_name in ['cifar10']:  # iterate over training datasets
+        for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn', 'lsun']:
+            # iterate over datasets from which we want get embeddings
+            for loss_function_name in [
+                'brier_score',
+                'cross_entropy',
+                'spherical_score'
+            ]:
+                # different loss functions
+                for model_id in model_ids:
+                    # and different ensemble members
+                    print((
+                        f'Training dataset: {training_dataset_name} ...'
+                        f'Extraction dataset: {extraction_dataset_name} '
+                        f'Loading {architecture}, '
+                        f'model_id={model_id} '
+                        f'and loss {loss_function_name}'
+                    ))
+                    print('Extracting embeddings....')
+                    extract_embeddings(
+                        training_dataset_name=training_dataset_name,
+                        extraction_dataset_name=extraction_dataset_name,
+                        architecture=architecture,
+                        model_id=model_id,
+                        loss_function_name=loss_function_name
+                    )
+                    print('Finished embeddings extraction!')
 
-                print('Saving additional evaluation params...')
-                save_additional_stats(
-                    dataset_name=dataset_name,
-                    architecture=architecture,
-                    model_id=model_id,
-                    loss_function_name=loss_function_name
-                )
+                    if extraction_dataset_name == training_dataset_name:
+                        print('Saving additional evaluation params...')
+                        save_additional_stats(
+                            dataset_name=training_dataset_name,
+                            architecture=architecture,
+                            model_id=model_id,
+                            loss_function_name=loss_function_name
+                        )
 
-    # stats_dict = collect_stats(
-    #     architecture=architecture,
-    #     dataset_name=dataset_name,
-    #     loss_function_name=loss_function_name,
-    #     model_ids=model_ids,
-    # )
-    # print(stats_dict)
+        # stats_dict = collect_stats(
+        #     architecture=architecture,
+        #     dataset_name=dataset_name,
+        #     loss_function_name=loss_function_name,
+        #     model_ids=model_ids,
+        # )
+        # print(stats_dict)
 
     print('Finished!')
