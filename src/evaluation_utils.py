@@ -67,7 +67,7 @@ def load_embeddings_dict(
 
     # Loading the dictionary from the file
     loaded_dict = load_dict(
-        load_path=os.path.join(file_path, 'embeddings.pkl'))
+        load_path=os.path.join(file_path, f'embeddings_{dataset_name}.pkl'))
 
     return loaded_dict
 
