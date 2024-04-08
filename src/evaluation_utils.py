@@ -1,75 +1,18 @@
-import sys
-from collections import defaultdict
-sys.path.insert(0, './')
-sys.path.insert(0, '.')
-from tqdm.auto import tqdm
-from external_repos.pytorch_cifar10.utils import (
-    get_model,
-)
-import pickle
-import json
-import torch.nn as nn
-import torch
-import numpy as np
-from sklearn.metrics import classification_report
-from data_utils import load_dataloader_for_extraction
 import os
-
-
-def save_dict(save_path: str, dict_to_save: dict) -> None:
-    """The function saves dict to a specific file
-
-    Args:
-        save_path (str): _description_
-        dict_to_save (dict): _description_
-    """
-    with open(save_path, 'wb') as file:
-        pickle.dump(dict_to_save, file)
-
-
-def load_dict(load_path: str) -> dict:
-    """The function loads dict from a specific file
-
-    Args:
-        load_path (str): _description_
-
-    Returns:
-        dict: _description_
-    """
-    with open(load_path, 'rb') as file:
-        loaded_dict = pickle.load(file)
-    return loaded_dict
-
-
-def load_embeddings_dict(
-    architecture: str,
-    dataset_name: str,
-    model_id: int,
-    loss_function_name: str,
-):
-    """The function loads dict with extracted embeddings
-
-    Args:
-        architecture (str): _description_
-        dataset_name (str): _description_
-        model_id (int): _description_
-        loss_function_name (str): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    file_path = make_load_path(
-        architecture=architecture,
-        dataset_name=dataset_name,
-        model_id=model_id,
-        loss_function_name=loss_function_name
-    )
-
-    # Loading the dictionary from the file
-    loaded_dict = load_dict(
-        load_path=os.path.join(file_path, f'embeddings_{dataset_name}.pkl'))
-
-    return loaded_dict
+from data_utils import (
+    load_dataloader_for_extraction,
+    make_load_path,
+    save_dict,
+    load_dict,
+    load_embeddings_dict,
+    load_model_checkpoint
+)
+from sklearn.metrics import classification_report
+import numpy as np
+import torch
+import json
+from tqdm.auto import tqdm
+from collections import defaultdict
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
@@ -113,54 +56,6 @@ def save_additional_stats(
 
     with open(os.path.join(load_path, 'results_dict.json'), 'w') as file:
         json.dump(fp=file, obj=actual_acc, indent=4,)
-
-
-def load_model_checkpoint(architecture: str, path: str, device) -> nn.Module:
-    """Load trained model checkpoint
-
-    Args:
-        architecture (str): _description_
-        path (str): _description_
-        device (_type_): _description_
-
-    Returns:
-        nn.Module: _description_
-    """
-    checkpoint = torch.load(path, map_location=device)
-    model = get_model(architecture=architecture)
-    model.load_state_dict(checkpoint['net'])
-    return model
-
-
-def make_load_path(
-        architecture: str,
-        loss_function_name: str,
-        dataset_name: str,
-        model_id: int,
-):
-    """Create load path for specific model
-
-    Args:
-        architecture (str): _description_
-        loss_function_name (str): _description_
-        dataset_name (str): _description_
-        model_id (int): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    if dataset_name == 'cifar10':
-        return (f'./external_repos/'
-                'pytorch_cifar10/'
-                'checkpoints/'
-                f'{architecture}/{loss_function_name}/{model_id}/')
-    elif dataset_name == 'cifar100':
-        return (f'./external_repos/'
-                'pytorch_cifar100/'
-                'checkpoints/'
-                f'{architecture}/{loss_function_name}/{model_id}/')
-    else:
-        raise ValueError('No such dataset name supported.')
 
 
 def extract_embeddings(
@@ -224,6 +119,53 @@ def extract_embeddings(
     # Saving the dictionary to a file using pickle
     save_dict(save_path=embeddings_path,
               dict_to_save=output_embeddings)
+
+
+def collect_embeddings(
+        model_ids: list | np.ndarray,
+        architecture: str,
+        loss_function_name: str,
+        training_dataset_name: str,
+        list_extraction_datasets: list = ['cifar10', 'cifar100', 'svhn'],
+) -> dict[str, np.ndarray]:
+    """The function collects embeddings for different members of ensembles
+      and different datasets
+
+    Args:
+        model_ids (list | np.ndarray): IDs of ensemble memebers we take
+        into account
+        architecture (str): model architecture name
+        loss_function_name (str): loss function name
+        training_dataset_name (str): dataset name used in training
+        list_extraction_datasets (list, optional): datasets for which
+        we will used embeddings. Defaults to ['cifar10', 'cifar100', 'svhn'].
+
+    Returns:
+        dict[str, np.ndarray]: Key -- dataset name; Value -- stacked logits.
+    """
+    embeddings_per_dataset = defaultdict(list)
+    for extraction_dataset_name in list_extraction_datasets:
+        for model_id in model_ids:
+
+            path_to_model_folder = make_load_path(
+                architecture=architecture,
+                loss_function_name=loss_function_name,
+                dataset_name=training_dataset_name,
+                model_id=model_id
+            )
+
+            loaded_embeddings = load_dict(
+                os.path.join(
+                    path_to_model_folder,
+                    f'embeddings_{extraction_dataset_name}.pkl'
+                )
+            )['embeddings']
+
+            embeddings_per_dataset[extraction_dataset_name].append(
+                loaded_embeddings[None])
+        embeddings_per_dataset[extraction_dataset_name] = np.vstack(
+            embeddings_per_dataset[extraction_dataset_name])
+    return embeddings_per_dataset
 
 
 def collect_stats(
