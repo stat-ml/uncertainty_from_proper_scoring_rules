@@ -6,7 +6,7 @@
 # Outer loop over loss function types
 #for loss_function in "${loss_functions[@]}"
 #do
-loss_function="cross_entropy"
+loss_function="brier_score"
  # Inner loop from 10 to 20 for model_id
     for model_id in $(seq 0 20)
     do

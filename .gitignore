@@ -4,6 +4,7 @@ external_repos/pytorch_cifar10/checkpoints/
 external_repos/pytorch_cifar10/data/
 external_repos/FERPlus/
 data/
+datasets/
 notebooks/
 *.ipynb
 
