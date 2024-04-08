@@ -1,3 +1,7 @@
+import sys
+from collections import defaultdict
+sys.path.insert(0, './')
+sys.path.insert(0, '.')
 from tqdm.auto import tqdm
 from external_repos.pytorch_cifar10.utils import (
     get_model,
@@ -10,10 +14,6 @@ import numpy as np
 from sklearn.metrics import classification_report
 from data_utils import load_dataloader_for_extraction
 import os
-import sys
-from collections import defaultdict
-sys.path.insert(0, './')
-sys.path.insert(0, '.')
 
 
 def save_dict(save_path: str, dict_to_save: dict) -> None:
