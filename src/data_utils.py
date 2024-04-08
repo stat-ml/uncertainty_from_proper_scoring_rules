@@ -5,7 +5,7 @@ from external_repos.pytorch_cifar10.utils import (
 from external_repos.pytorch_cifar100.utils import (
     get_transforms as get_cifar100_transforms,
 )
-
+import os
 import torch
 import torchvision
 from torchvision import transforms
@@ -38,8 +38,10 @@ def load_dataloader_for_extraction(
         if training_dataset_name in ['cifar10', 'cifar100', 'svhn']:
             ind_transforms = transforms.Compose(
                 [transforms.Resize((32, 32))] + ind_transforms.transforms)
+
+        scriptdir = os.path.dirname(__file__)
         dataset = torchvision.datasets.LSUN(
-            root='./data',
+            root=os.path.join(scriptdir, 'data'),
             classes='test', transform=ind_transforms
         )
     elif extraction_dataset_name == 'cifar100':
