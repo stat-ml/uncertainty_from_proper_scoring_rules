@@ -7,24 +7,24 @@ def safe_softmax(x):
     return e_x / e_x.sum(axis=-1, keepdims=True)
 
 
-def safe_kl_divergence(logits_p, logits_q):
-    p_safe = safe_softmax(logits_p)
+def safe_kl_divergence(logits_gt, logits_pred):
+    p_safe = safe_softmax(logits_gt)
     return np.sum(
-        p_safe * (logits_p - logits_q +
-                  logsumexp(logits_q, axis=-1, keepdims=True)
-                  - logsumexp(logits_p, axis=-1, keepdims=True)), axis=-1)
+        p_safe * (logits_gt - logits_pred +
+                  logsumexp(logits_pred, axis=-1, keepdims=True)
+                  - logsumexp(logits_gt, axis=-1, keepdims=True)), axis=-1)
 
 
-def pairwise_kl(logits_p, logits_q):
+def pairwise_kl(logits_gt, logits_pred):
     # Expand P and Q to have shape
     # (N_members_A, N_members_B, N_objects, N_classes)
     # for broadcasting. This creates every combination
     #  of pairs between A and B.
-    logits_p_exp = logits_p[:, np.newaxis, :, :]
-    logits_q_exp = logits_q[np.newaxis, :, :, :]
+    logits_gt_exp = logits_gt[:, np.newaxis, :, :]
+    logits_pred_exp = logits_pred[np.newaxis, :, :, :]
 
     # Compute KL divergence for each combination of pairs
-    kl_divs = safe_kl_divergence(logits_p_exp, logits_q_exp)
+    kl_divs = safe_kl_divergence(logits_gt_exp, logits_pred_exp)
 
     # kl_divs now has shape (N_members_A, N_members_B, N_objects)
     # You might want to aggregate this further depending on your needs,
@@ -33,18 +33,18 @@ def pairwise_kl(logits_p, logits_q):
     return kl_divs
 
 
-def pairwise_brier(logits_p, logits_q):
-    p_exp = safe_softmax(logits_p)[:, np.newaxis, :, :]
-    q_exp = safe_softmax(logits_q)[np.newaxis, :, :, :]
+def pairwise_brier(logits_gt, logits_pred):
+    p_exp = safe_softmax(logits_gt)[:, np.newaxis, :, :]
+    q_exp = safe_softmax(logits_pred)[np.newaxis, :, :, :]
 
     brier_divs = np.sum((p_exp - q_exp) ** 2, axis=-1)
 
     return brier_divs
 
 
-def pairwise_spherical(logits_p, logits_q):
-    p_exp = safe_softmax(logits_p)[:, np.newaxis, :, :]
-    q_exp = safe_softmax(logits_q)[np.newaxis, :, :, :]
+def pairwise_spherical(logits_gt, logits_pred):
+    p_exp = safe_softmax(logits_gt)[:, np.newaxis, :, :]
+    q_exp = safe_softmax(logits_pred)[np.newaxis, :, :, :]
 
     p_exp_normed = p_exp / np.linalg.norm(p_exp, ord=2, axis=-1, keepdims=True)
     q_exp_normed = q_exp / np.linalg.norm(q_exp, ord=2, axis=-1, keepdims=True)
@@ -61,30 +61,30 @@ def entropy(probs):
     return -np.sum(probs * np.log(probs), axis=-1)
 
 
-def entropy_average(logits_p, logits_q):
-    prob_p = safe_softmax(logits_p)
+def entropy_average(logits_pred, logits_gt=None):
+    prob_p = safe_softmax(logits_pred)
     avg_predictions = np.mean(prob_p, axis=0)
     return entropy(avg_predictions)
 
 
-def average_entropy(logits_p, logits_q):
-    prob_p = safe_softmax(logits_p)
+def average_entropy(logits_pred, logits_gt=None):
+    prob_p = safe_softmax(logits_pred)
     individual_entropies = entropy(prob_p)
     average_entropy_individual = np.mean(individual_entropies, axis=0)
     return average_entropy_individual
 
 
-def mutual_information(logits_p, logits_q):
-    HE = entropy_average(logits_p, logits_p)
-    EH = average_entropy(logits_p, logits_p)
+def mutual_information(logits_pred, logits_gt=None):
+    HE = entropy_average(logits_pred=logits_pred, logits_gt=None)
+    EH = average_entropy(logits_pred=logits_pred, logits_gt=None)
 
     bald_scores = HE - EH
 
     return bald_scores
 
 
-def reverse_mutual_information(logits_p, logits_q):
-    prob_p = safe_softmax(logits_p)
+def reverse_mutual_information(logits_pred, logits_gt=None):
+    prob_p = safe_softmax(logits_pred)
     avg_predictions = np.mean(prob_p, axis=0, keepdims=True)
     return np.mean(
         np.sum(
@@ -93,40 +93,40 @@ def reverse_mutual_information(logits_p, logits_q):
 
 
 def expected_pairwise_kl(
-        logits_p: np.ndarray,
-        logits_q: np.ndarray
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
 ) -> np.ndarray:
     return np.mean(
-        pairwise_kl(logits_p, logits_q), axis=(0, 1)
+        pairwise_kl(logits_gt, logits_pred), axis=(0, 1)
     )
 
 
 def expected_pairwise_brier(
-        logits_p: np.ndarray,
-        logits_q: np.ndarray
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
 ) -> np.ndarray:
     return np.mean(
-        pairwise_brier(logits_p, logits_q), axis=(0, 1)
+        pairwise_brier(logits_gt, logits_pred), axis=(0, 1)
     )
 
 
 def expected_pairwise_spherical(
-        logits_p: np.ndarray,
-        logits_q: np.ndarray
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
 ) -> np.ndarray:
     return np.mean(
-        pairwise_spherical(logits_p, logits_q), axis=(0, 1)
+        pairwise_spherical(logits_gt, logits_pred), axis=(0, 1)
     )
 
 
-def maxprob_average(logits_p, logits_1):
-    prob_p = safe_softmax(logits_p)
+def maxprob_average(logits_pred, logits_gt=None):
+    prob_p = safe_softmax(logits_pred)
     avg_predictions = np.mean(prob_p, axis=0)
     return 1 - np.max(avg_predictions, axis=-1)
 
 
-def average_maxprob(logits_p, logits_1):
-    prob_p = safe_softmax(logits_p)
+def average_maxprob(logits_pred, logits_gt=None):
+    prob_p = safe_softmax(logits_pred)
     return np.mean(1 - np.max(prob_p, axis=-1), axis=0)
 
 
