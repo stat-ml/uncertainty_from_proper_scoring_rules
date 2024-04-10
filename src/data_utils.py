@@ -74,7 +74,7 @@ def load_dataloader_for_extraction(
             ind_transforms = transforms.Compose(
                 [transforms.Resize((32, 32))] + ind_transforms.transforms)
 
-    elif extraction_dataset_name == 'cifar100':
+    if extraction_dataset_name == 'cifar100':
         dataset = torchvision.datasets.CIFAR100(
             root='./datasets',
             train=False,
