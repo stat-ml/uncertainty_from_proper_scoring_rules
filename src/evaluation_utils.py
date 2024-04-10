@@ -1,6 +1,11 @@
-import os
 import sys
 sys.path.insert(0, 'external_repos/pytorch_cifar100')
+from collections import defaultdict
+from tqdm.auto import tqdm
+import json
+import torch
+import numpy as np
+from sklearn.metrics import classification_report
 from data_utils import (
     load_dataloader_for_extraction,
     make_load_path,
@@ -9,12 +14,7 @@ from data_utils import (
     load_embeddings_dict,
     load_model_checkpoint
 )
-from sklearn.metrics import classification_report
-import numpy as np
-import torch
-import json
-from tqdm.auto import tqdm
-from collections import defaultdict
+import os
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
@@ -98,7 +98,7 @@ def extract_embeddings(
         path=checkpoint_path,
         device=device,
         n_classes=n_classes
-        )
+    )
     model = model.to(device)
 
     model.eval()
@@ -209,12 +209,13 @@ if __name__ == '__main__':
     # dataset_name = 'cifar10'
     model_ids = np.arange(20)
 
-    for training_dataset_name in ['cifar100']:  # iterate over training datasets
+    # iterate over training datasets
+    for training_dataset_name in ['cifar100']:
         if training_dataset_name == 'cifar100':
             n_classes = 100
         else:
             n_classes = 10
-        for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn', 'lsun']:
+        for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn', 'stl10']:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
                 'brier_score',

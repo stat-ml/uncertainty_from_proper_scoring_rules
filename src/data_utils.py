@@ -69,7 +69,7 @@ def load_dataloader_for_extraction(
     else:
         ValueError("No such dataset available")
 
-    if extraction_dataset_name == 'lsun':
+    if extraction_dataset_name in ['stl10', 'lsun']:
         if training_dataset_name in ['cifar10', 'cifar100', 'svhn']:
             ind_transforms = transforms.Compose(
                 [transforms.Resize((32, 32))] + ind_transforms.transforms)
