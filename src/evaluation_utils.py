@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, 'external_repos/pytorch_cifar100')
 from data_utils import (
     load_dataloader_for_extraction,
     make_load_path,
@@ -203,7 +205,7 @@ if __name__ == '__main__':
     # dataset_name = 'cifar10'
     model_ids = np.arange(20)
 
-    for training_dataset_name in ['cifar10']:  # iterate over training datasets
+    for training_dataset_name in ['cifar100']:  # iterate over training datasets
         for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn', 'lsun']:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
