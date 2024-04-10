@@ -1,5 +1,6 @@
 import sys
 sys.path.insert(0, 'external_repos/pytorch_cifar100')
+sys.path.insert(0, 'external_repos/pytorch_cifar10')
 from collections import defaultdict
 from tqdm.auto import tqdm
 import json
@@ -217,7 +218,7 @@ if __name__ == '__main__':
     model_ids = np.arange(20)
 
     # iterate over training datasets
-    for training_dataset_name in ['cifar100']:
+    for training_dataset_name in ['cifar10']:
         if training_dataset_name == 'cifar100':
             n_classes = 100
         else:
