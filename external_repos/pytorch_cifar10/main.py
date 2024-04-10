@@ -47,7 +47,7 @@ print(f'Using {loss_name} for training...')
 # Model
 print('==> Building model..')
 
-net = get_model(architecture=architecture)
+net = get_model(architecture=architecture, n_classes=10)
 
 print("Used device is ", device)
 net = net.to(device)

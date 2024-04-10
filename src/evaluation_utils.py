@@ -222,7 +222,7 @@ if __name__ == '__main__':
             n_classes = 100
         else:
             n_classes = 10
-        for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn', 'stl10']:
+        for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn',]: 
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
                 'brier_score',
