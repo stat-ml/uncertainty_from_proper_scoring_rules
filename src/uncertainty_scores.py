@@ -83,6 +83,15 @@ def mutual_information(logits_pred, logits_gt=None):
     return bald_scores
 
 
+def mutual_information_avg_kl(logits_pred, logits_gt=None):
+    prob_p = safe_softmax(logits_pred)
+    avg_predictions = np.mean(prob_p, axis=0, keepdims=True)
+    return np.mean(
+        np.sum(
+            prob_p * np.log(prob_p / avg_predictions), axis=-1
+        ), axis=0)
+
+
 def reverse_mutual_information(logits_pred, logits_gt=None):
     prob_p = safe_softmax(logits_pred)
     avg_predictions = np.mean(prob_p, axis=0, keepdims=True)
