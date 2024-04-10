@@ -71,7 +71,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, block, num_blocks, n_classes=10):
         super(ResNet, self).__init__()
         self.in_planes = 64
 
@@ -82,7 +82,7 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512*block.expansion, num_classes)
+        self.linear = nn.Linear(512*block.expansion, n_classes)
 
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -104,28 +104,29 @@ class ResNet(nn.Module):
         return out
 
 
-def ResNet18():
+def ResNet18(n_classes):
     return ResNet(BasicBlock, [2, 2, 2, 2])
 
 
-def ResNet34():
+def ResNet34(n_classes):
     return ResNet(BasicBlock, [3, 4, 6, 3])
 
 
-def ResNet50():
+def ResNet50(n_classes):
     return ResNet(Bottleneck, [3, 4, 6, 3])
 
 
-def ResNet101():
+def ResNet101(n_classes):
     return ResNet(Bottleneck, [3, 4, 23, 3])
 
 
-def ResNet152():
+def ResNet152(n_classes):
     return ResNet(Bottleneck, [3, 8, 36, 3])
 
 
 def test():
-    net = ResNet18()
+    n_classes = 10
+    net = ResNet18(n_classes)
     y = net(torch.randn(1, 3, 32, 32))
     print(y.size())
 

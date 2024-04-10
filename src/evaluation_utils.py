@@ -66,6 +66,7 @@ def extract_embeddings(
         training_dataset_name: str,
         extraction_dataset_name: str,
         model_id: int,
+        n_classes: int,
 ):
     """The function extracts and save embeddings for a specific model
 
@@ -75,6 +76,7 @@ def extract_embeddings(
         training_dataset_name (str): _description_
         extraction_dataset_name (str): _description_
         model_id (int): _description_
+        n_classes (int): _description_
     """
     load_path = make_load_path(
         architecture=architecture,
@@ -94,7 +96,9 @@ def extract_embeddings(
     model = load_model_checkpoint(
         architecture=architecture,
         path=checkpoint_path,
-        device=device)
+        device=device,
+        n_classes=n_classes
+        )
     model = model.to(device)
 
     model.eval()
@@ -206,6 +210,10 @@ if __name__ == '__main__':
     model_ids = np.arange(20)
 
     for training_dataset_name in ['cifar100']:  # iterate over training datasets
+        if training_dataset_name == 'cifar100':
+            n_classes = 100
+        else:
+            n_classes = 10
         for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn', 'lsun']:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
@@ -229,6 +237,7 @@ if __name__ == '__main__':
                         extraction_dataset_name=extraction_dataset_name,
                         architecture=architecture,
                         model_id=model_id,
+                        n_classes=n_classes,
                         loss_function_name=loss_function_name
                     )
                     print('Finished embeddings extraction!')

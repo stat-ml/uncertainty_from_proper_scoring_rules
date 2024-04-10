@@ -34,7 +34,10 @@ def get_transforms() -> tuple[transforms.Compose, transforms.Compose]:
     return transform_train, transform_test
 
 
-def get_model(architecture: str) -> nn.Module:
+def get_model(
+        architecture: str,
+        n_classes: int,
+        ) -> nn.Module:
     match architecture:
         case 'vgg':
             net = VGG('VGG19')

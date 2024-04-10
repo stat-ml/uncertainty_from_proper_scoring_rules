@@ -1,18 +1,18 @@
-import sys
-sys.path.insert(0, './')
-from external_repos.pytorch_cifar10.utils import get_model
-import pickle
-from torchvision import transforms
-import torchvision
-import torch.nn as nn
-import torch
-import os
-from external_repos.pytorch_cifar100.utils import (
-    get_transforms as get_cifar100_transforms,
-)
 from external_repos.pytorch_cifar10.utils import (
     get_transforms as get_cifar10_transforms,
 )
+from external_repos.pytorch_cifar100.utils import (
+    get_transforms as get_cifar100_transforms,
+)
+import os
+import torch
+import torch.nn as nn
+import torchvision
+from torchvision import transforms
+import pickle
+from external_repos.pytorch_cifar10.utils import get_model
+import sys
+sys.path.insert(0, './')
 
 
 def make_load_path(
@@ -83,6 +83,14 @@ def load_dataloader_for_extraction(
         dataset = torchvision.datasets.CIFAR100(
             root='./datasets',
             train=False,
+            download=True,
+            transform=ind_transforms
+        )
+
+    elif extraction_dataset_name == 'stl10':
+        dataset = torchvision.datasets.STL10(
+            root='./datasets',
+            split='test',
             download=True,
             transform=ind_transforms
         )
@@ -168,18 +176,24 @@ def load_embeddings_dict(
     return loaded_dict
 
 
-def load_model_checkpoint(architecture: str, path: str, device) -> nn.Module:
+def load_model_checkpoint(
+    architecture: str,
+        path: str,
+        n_classes: int,
+        device
+) -> nn.Module:
     """Load trained model checkpoint
 
     Args:
         architecture (str): _description_
         path (str): _description_
+        n_classes (int): _description_
         device (_type_): _description_
 
     Returns:
         nn.Module: _description_
     """
     checkpoint = torch.load(path, map_location=device)
-    model = get_model(architecture=architecture)
+    model = get_model(architecture=architecture, n_classes=n_classes)
     model.load_state_dict(checkpoint['net'])
     return model
