@@ -51,13 +51,20 @@ def save_additional_stats(
 
     checkpoint_path = os.path.join(load_path, 'ckpt.pth')
     last_acc = torch.load(checkpoint_path, map_location='cpu')['acc']
+    if isinstance(last_acc, torch.Tensor):
+        last_acc = last_acc.cpu().detach().numpy()
     actual_acc = get_additional_evaluation_metrics(
         embeddings_dict=embeddings_dict
     )
     actual_acc.update({'last_acc': last_acc / 100})
 
-    with open(os.path.join(load_path, 'results_dict.json'), 'w') as file:
-        json.dump(fp=file, obj=actual_acc, indent=4,)
+    try:
+        with open(os.path.join(load_path, 'results_dict.json'), 'w') as file:
+            json.dump(fp=file, obj=actual_acc, indent=4,)
+    except:
+        import pdb
+        pdb.set_trace()
+        print('oh')
 
 
 def extract_embeddings(
