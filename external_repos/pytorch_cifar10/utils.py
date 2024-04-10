@@ -40,9 +40,9 @@ def get_model(
         ) -> nn.Module:
     match architecture:
         case 'vgg':
-            net = VGG('VGG19')
+            net = VGG('VGG19', n_classes)
         case 'resnet18':
-            net = ResNet18()
+            net = ResNet18(n_classes)
         case _:
             print("No such architecture")
             raise ValueError()
