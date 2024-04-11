@@ -216,7 +216,7 @@ def logscore_central_prediction(
     return safe_softmax(np.mean(np.log(probs), axis=0, keepdims=True))
 
 
-def kl_bias(
+def logscore_bias(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
@@ -228,7 +228,7 @@ def kl_bias(
     ).squeeze()
 
 
-def kl_model_variance(
+def logscore_model_variance(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
@@ -240,11 +240,21 @@ def kl_model_variance(
         ), axis=0)
 
 
-def kl_model_variance_plus_mi(
+def logscore_model_variance_plus_mi(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    return kl_model_variance(logits_pred=logits_pred, logits_gt=logits_gt) \
+    return logscore_model_variance(
+        logits_pred=logits_pred, logits_gt=logits_gt) \
+        + mutual_information_avg_kl(logits_pred=logits_pred,
+                                    logits_gt=logits_gt)
+
+
+def logscore_bias_plus_mi(
+    logits_pred: np.ndarray,
+    logits_gt: np.ndarray,
+):
+    return logscore_bias(logits_pred=logits_pred, logits_gt=logits_gt) \
         + mutual_information_avg_kl(logits_pred=logits_pred,
                                     logits_gt=logits_gt)
 
