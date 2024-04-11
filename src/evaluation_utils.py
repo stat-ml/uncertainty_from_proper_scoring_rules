@@ -1,7 +1,10 @@
-import sys
-sys.path.insert(0, 'external_repos/pytorch_cifar100')
-sys.path.insert(0, 'external_repos/pytorch_cifar10')
-import os
+from collections import defaultdict
+from tqdm.auto import tqdm
+import json
+import torch
+import numpy as np
+from typing import Optional
+from sklearn.metrics import classification_report
 from data_utils import (
     load_dataloader_for_extraction,
     make_load_path,
@@ -10,13 +13,10 @@ from data_utils import (
     load_embeddings_dict,
     load_model_checkpoint
 )
-from sklearn.metrics import classification_report
-from typing import Optional
-import numpy as np
-import torch
-import json
-from tqdm.auto import tqdm
-from collections import defaultdict
+import os
+import sys
+sys.path.insert(0, 'external_repos/pytorch_cifar100')
+sys.path.insert(0, 'external_repos/pytorch_cifar10')
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
@@ -143,7 +143,7 @@ def collect_embeddings(
         training_dataset_name: str,
         list_extraction_datasets: list = ['cifar10', 'cifar100', 'svhn'],
         temperature: float = 1.0,
-) -> dict[str, np.ndarray]:
+) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
     """The function collects embeddings for different members of ensembles
       and different datasets
 
@@ -158,9 +158,12 @@ def collect_embeddings(
         temperature: (float,): Temperature to scale logits. Default 1.0
 
     Returns:
-        dict[str, np.ndarray]: Key -- dataset name; Value -- stacked logits.
+        tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
+        Key -- dataset name; Value -- stacked logits.
+        Key -- dataset name; Value -- stacked targets.
     """
     embeddings_per_dataset = defaultdict(list)
+    targets_per_dataset = defaultdict(list)
     for extraction_dataset_name in list_extraction_datasets:
         for model_id in model_ids:
 
@@ -171,18 +174,26 @@ def collect_embeddings(
                 model_id=model_id
             )
 
-            loaded_embeddings = load_dict(
+            loaded_dict = load_dict(
                 os.path.join(
                     path_to_model_folder,
                     f'embeddings_{extraction_dataset_name}.pkl'
                 )
-            )['embeddings'] / temperature
+            )
+
+            loaded_embeddings = loaded_dict['embeddings'] / temperature
+            loaded_targets = loaded_dict['targets']
 
             embeddings_per_dataset[extraction_dataset_name].append(
                 loaded_embeddings[None])
+            targets_per_dataset[extraction_dataset_name].append(loaded_targets)
+
         embeddings_per_dataset[extraction_dataset_name] = np.vstack(
             embeddings_per_dataset[extraction_dataset_name])
-    return embeddings_per_dataset
+        targets_per_dataset = np.hstack(
+            targets_per_dataset[extraction_dataset_name])
+
+    return embeddings_per_dataset, targets_per_dataset
 
 
 def collect_stats(
