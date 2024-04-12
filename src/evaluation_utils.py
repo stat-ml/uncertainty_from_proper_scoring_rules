@@ -182,7 +182,7 @@ def collect_embeddings(
             )
 
             loaded_embeddings = loaded_dict['embeddings'] / temperature
-            loaded_targets = loaded_dict['targets']
+            loaded_targets = loaded_dict['labels']
 
             embeddings_per_dataset[extraction_dataset_name].append(
                 loaded_embeddings[None])
@@ -190,7 +190,7 @@ def collect_embeddings(
 
         embeddings_per_dataset[extraction_dataset_name] = np.vstack(
             embeddings_per_dataset[extraction_dataset_name])
-        targets_per_dataset = np.hstack(
+        targets_per_dataset[extraction_dataset_name] = np.hstack(
             targets_per_dataset[extraction_dataset_name])
 
     return embeddings_per_dataset, targets_per_dataset
