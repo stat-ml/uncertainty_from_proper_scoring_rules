@@ -298,9 +298,7 @@ def excess_neglog_inner(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    logits_gt = posterior_predictive(logits_gt)
-
-    p_exp = safe_softmax(logits_gt)
+    p_exp = posterior_predictive(logits_gt)
     q_exp = safe_softmax(logits_pred)
 
     is_dist = np.sum(p_exp / q_exp -
