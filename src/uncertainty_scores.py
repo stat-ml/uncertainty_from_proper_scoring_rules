@@ -116,11 +116,14 @@ def pairwise_prob_diff(logits_gt, logits_pred):
     prob_pred = safe_softmax(logits_pred)
 
     argmax_indices = np.argmax(prob_pred, axis=-1)
-    members_index = np.arange(prob_pred.shape[0])[:, None, None]
-    objects_index = np.arange(prob_pred.shape[1])
-    max_gt = prob_gt[members_index, objects_index, argmax_indices[:, None, :]]
 
-    prob_divs = np.max(prob_gt[None, ...], axis=-1) - max_gt
+    max_gt = np.max(prob_gt, axis=-1)[:, np.newaxis, :]
+    gt_pred_index = prob_gt[
+        np.arange(argmax_indices.shape[0])[:, None],
+        np.arange(argmax_indices.shape[1]),
+        argmax_indices
+    ][None]
+    prob_divs = max_gt - gt_pred_index
 
     return prob_divs
 
@@ -136,7 +139,7 @@ def pairwise_IS_distance(logits_gt, logits_pred):
         _type_: _description_
     """
     logits_gt = logits_gt[:, np.newaxis, :, :]
-    logits_pred = logits_pred[:, np.newaxis, :, :]
+    logits_pred = logits_pred[np.newaxis, :, :, :]
 
     p_exp = safe_softmax(logits_gt)
     q_exp = safe_softmax(logits_pred)
@@ -310,6 +313,17 @@ def excess_neglog_inner(
 
     return np.mean(is_dist, axis=0)
 
+
+def bi_neglog(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    return excess_neglog_outer(
+        logits_gt=logits_gt, logits_pred=logits_pred) - \
+        excess_neglog_inner(
+            logits_gt=logits_gt, logits_pred=logits_pred)
+
+
 ############################################################
 
 
@@ -354,12 +368,21 @@ def excess_spherical_inner(
     ppd_normed = ppd / np.linalg.norm(ppd, ord=2, axis=-1, keepdims=True)
     pred_normed = pred / np.linalg.norm(pred, ord=2, axis=-1, keepdims=True)
 
-    p_normed = np.linalg.norm(ppd, ord=2, axis=-1)
+    p_norm = np.linalg.norm(ppd, ord=2, axis=-1)
     dot_prods = np.sum(ppd_normed * pred_normed, axis=-1)
-
-    spherical_divs = p_normed * (1 - dot_prods)
+    spherical_divs = p_norm * (1 - dot_prods)
 
     return np.mean(spherical_divs, axis=0)
+
+
+def bi_spherical(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    return excess_spherical_outer(
+        logits_gt=logits_gt, logits_pred=logits_pred) - \
+        excess_spherical_inner(
+            logits_gt=logits_gt, logits_pred=logits_pred)
 
 ############################################################
 
@@ -412,6 +435,16 @@ def excess_maxprob_inner(
     return prob_divs
 
 
+def bi_maxprob(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    return excess_maxprob_outer(
+        logits_gt=logits_gt, logits_pred=logits_pred) - \
+        excess_maxprob_inner(
+            logits_gt=logits_gt, logits_pred=logits_pred)
+
+
 ############################################################
 
 
@@ -452,6 +485,16 @@ def excess_brier_inner(
     return np.mean(
         np.linalg.norm(avg_predictions - pred_prob, ord=2, axis=-1), axis=0
     )
+
+
+def bi_brier(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    return excess_brier_outer(
+        logits_gt=logits_gt, logits_pred=logits_pred) - \
+        excess_brier_inner(
+            logits_gt=logits_gt, logits_pred=logits_pred)
 
 
 ############################################################
@@ -502,6 +545,16 @@ def bayes_logscore_inner(logits_gt, logits_pred=None):
     return entropy(avg_predictions)
 
 
+def bi_logscore(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    return excess_logscore_outer(
+        logits_gt=logits_gt, logits_pred=logits_pred) - \
+        excess_logscore_inner(
+            logits_gt=logits_gt, logits_pred=logits_pred)
+
+
 if __name__ == '__main__':
     # Example usage
     N_members, N_objects, N_classes = 3, 40, 5  # Example dimensions
@@ -536,11 +589,17 @@ if __name__ == '__main__':
         excess_neglog_inner,
         excess_neglog_outer,
         excess_spherical_inner,
-        excess_spherical_outer
+        excess_spherical_outer,
+        bi_brier,
+        bi_logscore,
+        bi_maxprob,
+        bi_spherical,
+        bi_neglog,
     ]:
         try:
             squared_dist_results = func_(A, B)
             assert squared_dist_results.shape == (N_objects, )
         except Exception as ex:
+            print("NOOO")
             print(func_)
             print(ex)
