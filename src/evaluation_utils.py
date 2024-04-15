@@ -225,11 +225,11 @@ def collect_stats(
 
 
 if __name__ == '__main__':
-    architecture = 'resnet18'
+    architecture = 'vgg' # 'resnet18'
     # model_id = 0
     # loss_function_name = 'brier_score'
     # dataset_name = 'cifar10'
-    model_ids = np.arange(20)
+    model_ids = [i for i in range(4, 20)] #np.arange(20)
 
     # iterate over training datasets
     for training_dataset_name in ['cifar10']:

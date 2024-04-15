@@ -8,7 +8,7 @@
 #do
 loss_function="cross_entropy"
  # Inner loop from 10 to 20 for model_id
-    for model_id in $(seq 4 20)
+    for model_id in $(seq 0 3)
     do
         # Run the Python command with the current model_id and loss_function
         CUDA_VISIBLE_DEVICES=1 python main.py --model_id $model_id --architecture vgg --loss $loss_function
