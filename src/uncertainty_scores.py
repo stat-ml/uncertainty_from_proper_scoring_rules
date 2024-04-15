@@ -127,13 +127,15 @@ def pairwise_prob_diff(logits_gt, logits_pred):
 
     max_gt = np.max(prob_gt, axis=-1)[:, np.newaxis, :]
 
-    gt_pred_index = prob_gt[
-        np.arange(argmax_indices.shape[0])[:, None],
-        np.arange(argmax_indices.shape[1]),
-        argmax_indices
-    ][None]
+    # gt_pred_index = prob_gt[
+    #     np.arange(argmax_indices.shape[0])[:, None],
+    #     np.arange(argmax_indices.shape[1]),
+    #     argmax_indices
+    # ][None]
 
-    prob_divs = max_gt - gt_pred_index
+    # prob_divs = max_gt - gt_pred_index
+
+    prob_divs = (max_gt.squeeze() - prob_gt[:, :, argmax_indices]).mean(1)
 
     return prob_divs
 
@@ -436,14 +438,17 @@ def excess_maxprob_inner(
     prob_pred = safe_softmax(logits_pred)
 
     argmax_indices = np.argmax(prob_pred, axis=-1)
-    objects_index = np.arange(prob_pred.shape[1])
-    ppd_indexed = ppd[
-        :,
-        objects_index,
-        argmax_indices
-    ][0]
+    # objects_index = np.arange(prob_pred.shape[1])
+    # ppd_indexed = ppd[
+    #     :,
+    #     objects_index,
+    #     argmax_indices
+    # ][0]
 
-    prob_divs = np.mean(np.max(ppd, axis=-1) - ppd_indexed, axis=0)
+    # prob_divs = np.mean(np.max(ppd, axis=-1) - ppd_indexed, axis=0)
+
+    prob_divs = np.mean(
+        (np.max(ppd, axis=-1) - ppd[:, :, argmax_indices]), axis=(0, 1, 2))
 
     return prob_divs
 
