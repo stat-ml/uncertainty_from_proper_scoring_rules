@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, 'external_repos/pytorch_cifar100')
+sys.path.insert(0, 'external_repos/pytorch_cifar10')
 from collections import defaultdict
 from tqdm.auto import tqdm
 import json
@@ -14,9 +17,6 @@ from data_utils import (
     load_model_checkpoint
 )
 import os
-import sys
-sys.path.insert(0, 'external_repos/pytorch_cifar100')
-sys.path.insert(0, 'external_repos/pytorch_cifar10')
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
@@ -141,7 +141,13 @@ def collect_embeddings(
         architecture: str,
         loss_function_name: str,
         training_dataset_name: str,
-        list_extraction_datasets: list = ['cifar10', 'cifar100', 'svhn'],
+        list_extraction_datasets: list = [
+            'cifar10',
+            'cifar100',
+            'svhn',
+            'blurred_cifar100',
+            'blurred_cifar10'
+        ],
         temperature: float = 1.0,
 ) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
     """The function collects embeddings for different members of ensembles
@@ -225,20 +231,24 @@ def collect_stats(
 
 
 if __name__ == '__main__':
-    architecture = 'vgg' # 'resnet18'
-    # model_id = 0
-    # loss_function_name = 'brier_score'
-    # dataset_name = 'cifar10'
+    architecture = 'vgg'  # 'resnet18'
+    training_datasets = ['cifar10']  # ['cifar10', 'cifar100']
     model_ids = np.arange(20)
 
     # iterate over training datasets
-    for training_dataset_name in ['cifar10']:
+    for training_dataset_name in training_datasets:
         if training_dataset_name == 'cifar100':
             n_classes = 100
         else:
             n_classes = 10
 
-        for extraction_dataset_name in ['cifar10', 'cifar100', 'svhn']:
+        for extraction_dataset_name in [
+            'cifar10',
+            'cifar100',
+            'svhn',
+            'blurred_cifar100',
+            'blurred_cifar10'
+        ]:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
                 'brier_score',
