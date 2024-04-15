@@ -29,7 +29,7 @@ def get_network(args):
     elif args.architecture == 'vgg11':
         from models.vgg import vgg11_bn
         net = vgg11_bn()
-    elif args.architecture == 'vgg19':
+    elif args.architecture == 'vgg':
         from models.vgg import vgg19_bn
         net = vgg19_bn()
     elif args.architecture == 'densenet121':
