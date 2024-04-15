@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from .conf import settings
+from conf import settings
 
 
 def get_network(args):

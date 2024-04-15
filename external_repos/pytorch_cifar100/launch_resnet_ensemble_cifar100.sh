@@ -11,6 +11,6 @@ loss_function="spherical_score"
     for model_id in $(seq 0 20)
     do
         # Run the Python command with the current model_id and loss_function
-        CUDA_VISIBLE_DEVICES=1 python train.py --model_id $model_id --architecture resnet18 --loss $loss_function -gpu
+        CUDA_VISIBLE_DEVICES=1 python train.py --model_id $model_id --architecture vgg --loss $loss_function -gpu
     done
 #done
