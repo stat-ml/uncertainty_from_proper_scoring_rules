@@ -1,13 +1,3 @@
-import re
-import pandas as pd
-import numpy as np
-import os
-from tqdm.auto import tqdm
-from typing import Optional
-from sklearn.metrics import roc_auc_score
-from src.evaluation_utils import collect_stats
-from evaluation_utils import collect_embeddings
-from data_utils import make_load_path, load_dict, save_dict
 from uncertainty_scores import (
     total_brier,
     total_logscore,
@@ -46,6 +36,18 @@ from uncertainty_scores import (
     logscore_bias_plus_mi,
     posterior_predictive
 )
+from data_utils import make_load_path, load_dict, save_dict
+from evaluation_utils import collect_embeddings
+from src.evaluation_utils import collect_stats
+from sklearn.metrics import roc_auc_score
+from typing import Optional
+from tqdm.auto import tqdm
+import os
+import numpy as np
+import re
+import pandas as pd
+pd.set_option("mode.copy_on_write", True)
+pd.options.mode.copy_on_write = True
 
 
 uq_funcs_with_names = [
