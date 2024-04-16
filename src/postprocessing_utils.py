@@ -164,7 +164,9 @@ def get_uncertainty_scores(
                 ########
 
                 ground_truth_embeddings = create_gt_embeddings(
-                    gt_prob_approx=gt_prob_approx
+                    gt_prob_approx=gt_prob_approx,
+                    embeddings_per_dataset=embeddings_per_dataset,
+                    dataset_=dataset_,
                 )
 
                 uq_results[uq_name][loss_function_name][dataset_] = uncertainty_func(
