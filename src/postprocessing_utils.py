@@ -279,7 +279,7 @@ def get_ood_detection_dataframe(
 
     for uq_name, _ in uq_funcs_with_names:
         roc_auc_dict[uq_name] = {}
-        print(f'OOD computed via {uq_name}')
+        # print(f'OOD computed via {uq_name}')
 
         for ood_dataset in list_ood_datasets:
             roc_auc_dict[uq_name][ood_dataset] = {}
@@ -301,14 +301,14 @@ def get_ood_detection_dataframe(
                 score = roc_auc_score(y_true=y_true, y_score=y_score)
                 roc_auc_dict[uq_name][ood_dataset][loss_] = score
 
-                print(
-                    (
-                        f'InD: {ind_dataset} \t '
-                        f'OOD: {ood_dataset} \t '
-                        f'loss: {loss_} \t '
-                        f'roc_auc: {score}'
-                    )
-                )
+                # print(
+                #     (
+                #         f'InD: {ind_dataset} \t '
+                #         f'OOD: {ood_dataset} \t '
+                #         f'loss: {loss_} \t '
+                #         f'roc_auc: {score}'
+                #     )
+                # )
 
     data_list = []
     for metric_name, datasets in roc_auc_dict.items():
@@ -338,7 +338,7 @@ def get_missclassification_dataframe(
 
     for uq_name, _ in uq_funcs_with_names:
         roc_auc_dict[uq_name] = {}
-        print(f'Misclassification computed via {uq_name}')
+        # print(f'Misclassification computed via {uq_name}')
 
         for loss_ in uq_results[uq_name].keys():
             y_true = (true_labels != pred_labels).astype(np.int32)
@@ -347,8 +347,8 @@ def get_missclassification_dataframe(
             score = roc_auc_score(y_true=y_true, y_score=y_score)
             roc_auc_dict[uq_name][loss_] = score
 
-            print(
-                f'InD: {ind_dataset} \t loss: {loss_} \t roc_auc: {score}')
+            # print(
+            #     f'InD: {ind_dataset} \t loss: {loss_} \t roc_auc: {score}')
 
     data_list_misclassification = []
     for metric_name, loss_function in roc_auc_dict.items():
