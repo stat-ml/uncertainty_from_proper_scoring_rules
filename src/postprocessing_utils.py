@@ -81,7 +81,6 @@ uq_funcs_with_names = [
     ("Bregman Information Maxprob", bi_maxprob),
     ("Bregman Information Neglog", bi_neglog),
     ("Bregman Information Spherical", bi_spherical),
-    ("Mutual Information", mutual_information_avg_kl),
     ("Logscore Bias term", logscore_bias),
     ("Logscore Model Variance term", logscore_model_variance),
     ("Logscore Model Variance + MI", logscore_model_variance_plus_mi),
