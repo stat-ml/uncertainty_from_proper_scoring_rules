@@ -464,7 +464,7 @@ def ravel_df(
         "Excess inner": exc_i,
         "Bayes inner": bay_i,
 
-        "BregmanInformation": bregman,
+        "Bregman Information": bregman,
 
         'Total outer': exc_o + bay_o,
         'Total inner': exc_i + bay_i,
