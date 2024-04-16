@@ -129,7 +129,8 @@ def get_uncertainty_scores(
         model_ids: np.ndarray,
         list_extraction_datasets: list[str],
         temperature: float = 1.0,
-        use_cheating_approximation: bool = False
+        use_cheating_approximation: bool = False,
+        gt_prob_approx: str = 'same',
 ) -> tuple[dict, dict, dict]:
     """
     The function extracts uncertainty scores from a list of datasets.
