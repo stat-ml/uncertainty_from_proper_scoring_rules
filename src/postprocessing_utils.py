@@ -149,7 +149,7 @@ def get_uncertainty_scores(
         model_id="NaN"
     )
     extracted_embeddings_file_path = os.path.join(
-        *folder_path.split('/')[:-2], 'extracted_information_for_notebook.pkl'
+        *folder_path.split('/')[:-3], 'extracted_information_for_notebook.pkl'
     )
 
     if os.path.exists(extracted_embeddings_file_path):
