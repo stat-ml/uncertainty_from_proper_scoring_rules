@@ -125,17 +125,17 @@ def pairwise_prob_diff(logits_gt, logits_pred):
 
     argmax_indices = np.argmax(prob_pred, axis=-1)
 
-    max_gt = np.max(prob_gt, axis=-1)[:, np.newaxis, :]
+    model_indices = np.arange(prob_gt.shape[0])
+    object_indices = np.arange(prob_gt.shape[1])
+    selected_class_indices = argmax_indices
 
-    # gt_pred_index = prob_gt[
-    #     np.arange(argmax_indices.shape[0])[:, None],
-    #     np.arange(argmax_indices.shape[1]),
-    #     argmax_indices
-    # ][None]
+    selected_data = prob_gt[
+        model_indices[:, None, None],
+        object_indices,
+        selected_class_indices,
+    ].transpose(1, 0, 2)
 
-    # prob_divs = max_gt - gt_pred_index
-
-    prob_divs = (max_gt.squeeze() - prob_gt[:, :, argmax_indices]).mean(1)
+    prob_divs = np.max(prob_gt, axis=-1)[:, None, :] - selected_data
 
     return prob_divs
 
@@ -438,19 +438,20 @@ def excess_maxprob_inner(
     prob_pred = safe_softmax(logits_pred)
 
     argmax_indices = np.argmax(prob_pred, axis=-1)
-    # objects_index = np.arange(prob_pred.shape[1])
-    # ppd_indexed = ppd[
-    #     :,
-    #     objects_index,
-    #     argmax_indices
-    # ][0]
 
-    # prob_divs = np.mean(np.max(ppd, axis=-1) - ppd_indexed, axis=0)
+    model_indices = np.arange(ppd.shape[0])
+    object_indices = np.arange(ppd.shape[1])
+    selected_class_indices = argmax_indices[:, None, :]
 
-    prob_divs = np.mean(
-        (np.max(ppd, axis=-1) - ppd[:, :, argmax_indices]), axis=(0, 1, 2))
+    selected_data = ppd[
+        model_indices[:, None, None],
+        object_indices,
+        selected_class_indices,
+    ].transpose((1, 0, 2))
 
-    return prob_divs
+    prob_divs = np.max(ppd, axis=-1) - selected_data
+
+    return np.mean(prob_divs, axis=(0, 1))
 
 
 def bi_maxprob(
