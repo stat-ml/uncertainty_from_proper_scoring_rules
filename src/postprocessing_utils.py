@@ -1,11 +1,13 @@
 import re
 import pandas as pd
 import numpy as np
+import os
 from tqdm.auto import tqdm
 from typing import Optional
 from sklearn.metrics import roc_auc_score
 from src.evaluation_utils import collect_stats
 from evaluation_utils import collect_embeddings
+from data_utils import make_load_path, load_dict, save_dict
 from uncertainty_scores import (
     total_brier,
     total_logscore,
@@ -139,6 +141,26 @@ def get_uncertainty_scores(
     It also returns a dict of embeddings for each dataset
     and a dict of GT labels for each dataset
     """
+
+    folder_path = make_load_path(
+        architecture=architecture,
+        dataset_name=training_dataset_name,
+        loss_function_name="NaN",
+        model_id="NaN"
+    )
+    extracted_embeddings_file_path = os.path.join(
+        *folder_path.split('/')[:-2], 'extracted_information_for_notebook.pkl'
+    )
+
+    if os.path.exists(extracted_embeddings_file_path):
+        res_dict = load_dict(extracted_embeddings_file_path)
+        uq_results, embeddings_per_dataset, targets_per_dataset = (
+            res_dict['uq_results'],
+            res_dict['embeddings_per_dataset'],
+            res_dict['targets_per_dataset'],
+        )
+        return uq_results, embeddings_per_dataset, targets_per_dataset
+
     uq_results = {}
 
     for uq_name, uncertainty_func in tqdm(uq_funcs_with_names):
@@ -175,6 +197,15 @@ def get_uncertainty_scores(
                     logits_gt=ground_truth_embeddings,
                     logits_pred=embeddings_per_dataset[dataset_]
                 )
+
+    res_dict = {
+        'uq_results': uq_results,
+        'embeddings_per_dataset': embeddings_per_dataset,
+        'targets_per_dataset': targets_per_dataset,
+    }
+    save_dict(
+        dict_to_save=res_dict,
+        save_path=extracted_embeddings_file_path)
     return uq_results, embeddings_per_dataset, targets_per_dataset
 
 
