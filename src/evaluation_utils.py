@@ -231,8 +231,8 @@ def collect_stats(
 
 
 if __name__ == '__main__':
-    architecture = 'vgg'  # 'resnet18'
-    training_datasets = ['cifar10']  # ['cifar10', 'cifar100']
+    architecture = 'resnet18'  # 'resnet18' 'vgg'
+    training_datasets = ['cifar10', 'cifar100']  # ['cifar10', 'cifar100']
     model_ids = np.arange(20)
 
     # iterate over training datasets
