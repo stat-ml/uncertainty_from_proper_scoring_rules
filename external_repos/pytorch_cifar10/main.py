@@ -1,13 +1,13 @@
 '''Train CIFAR10 with PyTorch.'''
+from utils import progress_bar, get_dataloaders, get_model
+import argparse
+import os
+import torch.optim as optim
+import torch.nn as nn
+import torch
+from losses import get_loss_function
 import sys
 sys.path.insert(0, '../../src')
-from losses import get_loss_function
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import os
-import argparse
-from utils import progress_bar, get_dataloaders, get_model
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
@@ -16,6 +16,8 @@ parser.add_argument('--model_id', type=int,
                     help='model id (for ensembles)', default=0)
 parser.add_argument('--architecture', choices=['resnet18', 'vgg'],
                     type=str, help='Model architecture.', default='resnet18')
+parser.add_argument('--dataset', choices=['cifar10', 'noisy_cifar10', 'svhn'],
+                    type=str, help='Training dataset.', default='cifar10')
 parser.add_argument('--loss',
                     choices=['cross_entropy', 'brier_score',
                              'spherical_score', 'neglog_score'],
@@ -38,7 +40,7 @@ best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
 # Data
-trainloader, testloader = get_dataloaders()
+trainloader, testloader = get_dataloaders(dataset=args.dataset)
 
 
 print(f'Using {architecture} for training...')
@@ -53,6 +55,7 @@ print("Used device is ", device)
 net = net.to(device)
 
 if args.resume:
+    raise ValueError("Resume is not supported!")
     # Load checkpoint.
     print('==> Resuming from checkpoint..')
     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
@@ -87,8 +90,10 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                     % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+        progress_bar(batch_idx, len(trainloader),
+                     'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                     % (train_loss/(batch_idx+1),
+                         100.*correct/total, correct, total))
 
 
 def test(epoch):
@@ -127,10 +132,22 @@ def test(epoch):
             'acc': acc,
             'epoch': epoch,
         }
-        if not os.path.exists(f'checkpoints/{architecture}/{loss_name}/{model_id}'):
-            os.makedirs(f'checkpoints/{architecture}/{loss_name}/{model_id}')
+        if args.dataset == 'cifar10':
+            save_folder = 'checkpoints'
+        elif args.dataset == 'noisy_cifar10':
+            save_folder = 'checkpoints_noisy_cifar10'
+        elif args.dataset == 'svhn':
+            save_folder = 'checkpoints_svhn'
+        else:
+            raise ValueError(f'{args.dataset} -- no such dataset')
+
+        if not os.path.exists(
+                f'{save_folder}/{architecture}/{loss_name}/{model_id}'):
+            os.makedirs(
+                f'{save_folder}/{architecture}/{loss_name}/{model_id}')
         torch.save(
-            state, f'./checkpoints/{architecture}/{loss_name}/{model_id}/ckpt.pth')
+            state,
+            f'./{save_folder}/{architecture}/{loss_name}/{model_id}/ckpt.pth')
         best_acc = acc
 
 

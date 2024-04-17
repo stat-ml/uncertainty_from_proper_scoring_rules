@@ -11,9 +11,44 @@ import torch.nn as nn
 import torch.nn.init as init
 
 from models import *
+import random
 import torch
 import torchvision
 import torchvision.transforms as transforms
+
+
+class CIFAR10NoisyLabels(torch.utils.data.Dataset):
+    def __init__(
+            self,
+            root,
+            train=True,
+            transform=None,
+            target_transform=None,
+            download=False):
+        self.dataset = torchvision.datasets.CIFAR10(
+            root=root, train=train, download=download, transform=transform)
+        self.target_transform = target_transform
+        # Pairs of labels to be swapped randomly
+        self.label_pairs = {1: 7, 7: 1, 3: 8, 8: 3, 2: 5, 5: 2}
+
+    def __getitem__(self, index):
+        # Get an item from the original CIFAR-10 dataset
+        image, label = self.dataset[index]
+
+        # If the label is part of a pair,
+        # randomly assign one of the two paired labels
+        if label in self.label_pairs:
+            label = random.choice([label, self.label_pairs[label]])
+
+        # Apply any target transformations (if any)
+        if self.target_transform:
+            label = self.target_transform(label)
+
+        return image, label
+
+    def __len__(self):
+        # Return the length of the original CIFAR-10 dataset
+        return len(self.dataset)
 
 
 def get_transforms() -> tuple[transforms.Compose, transforms.Compose]:
@@ -37,7 +72,7 @@ def get_transforms() -> tuple[transforms.Compose, transforms.Compose]:
 def get_model(
         architecture: str,
         n_classes: int,
-        ) -> nn.Module:
+) -> nn.Module:
     match architecture:
         case 'vgg':
             net = VGG('VGG19', n_classes)
@@ -62,20 +97,56 @@ def get_model(
     return net
 
 
-def get_dataloaders():
+def get_dataloaders(dataset: str):
     # Data
     print('==> Preparing data..')
     transform_train, transform_test = get_transforms()
 
-    trainset = torchvision.datasets.CIFAR10(
-        root='./data', train=True, download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=128, shuffle=True)
+    if dataset == 'cifar10':
+        trainset = torchvision.datasets.CIFAR10(
+            root='./data', train=True, download=True,
+            transform=transform_train)
+        trainloader = torch.utils.data.DataLoader(
+            trainset, batch_size=128, shuffle=True)
 
-    testset = torchvision.datasets.CIFAR10(
-        root='./data', train=False, download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(
-        testset, batch_size=100, shuffle=False)
+        testset = torchvision.datasets.CIFAR10(
+            root='./data', train=False, download=True,
+            transform=transform_test)
+        testloader = torch.utils.data.DataLoader(
+            testset, batch_size=100, shuffle=False)
+
+    elif dataset == 'noisy_cifar10':
+        trainset = CIFAR10NoisyLabels(
+            root='./data', train=True, download=True,
+            transform=transform_train)
+        trainloader = torch.utils.data.DataLoader(
+            trainset, batch_size=128, shuffle=True)
+
+        testset = torchvision.datasets.CIFAR10(
+            root='./data', train=False, download=True,
+            transform=transform_test)
+        testloader = torch.utils.data.DataLoader(
+            testset, batch_size=100, shuffle=False)
+
+    elif dataset == 'svhn':
+        trainset = torchvision.datasets.SVHN(
+            split="train",
+            root='./data',
+            download=True,
+            transform=transform_train
+        )
+        trainloader = torch.utils.data.DataLoader(
+            trainset, batch_size=128, shuffle=True)
+
+        testset = torchvision.datasets.SVHN(
+            split="test",
+            root='./data',
+            download=True,
+            transform=transform_test)
+        testloader = torch.utils.data.DataLoader(
+            testset, batch_size=100, shuffle=False)
+    else:
+        raise ValueError(f"{dataset} --  no such dataset available.")
 
     return trainloader, testloader
 
