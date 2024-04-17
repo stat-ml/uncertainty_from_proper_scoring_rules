@@ -1,4 +1,6 @@
 '''Train CIFAR10 with PyTorch.'''
+import sys
+sys.path.insert(0, '../../src')
 from utils import progress_bar, get_dataloaders, get_model
 import argparse
 import os
@@ -6,8 +8,6 @@ import torch.optim as optim
 import torch.nn as nn
 import torch
 from losses import get_loss_function
-import sys
-sys.path.insert(0, '../../src')
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
