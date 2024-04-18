@@ -10,11 +10,14 @@ import time
 import torch.nn as nn
 import torch.nn.init as init
 
-from models import *
+from models import VGG as VGG19_Cifar10, ResNet18
 import random
 import torch
 import torchvision
 import torchvision.transforms as transforms
+
+sys.path.insert(0, 'external_repos/pytorch_cifar100/models')
+from vgg import vgg19_bn as VGG19_Cifar100
 
 
 class CIFAR10NoisyLabels(torch.utils.data.Dataset):
@@ -75,7 +78,12 @@ def get_model(
 ) -> nn.Module:
     match architecture:
         case 'vgg':
-            net = VGG('VGG19', n_classes)
+            if n_classes == 10:
+                net = VGG19_Cifar10('VGG19', n_classes)
+            elif n_classes == 100:
+                net = VGG19_Cifar100()
+            else:
+                raise ValueError(f"Wrong number of classes: {n_classes}")
         case 'resnet18':
             net = ResNet18(n_classes)
         case _:
