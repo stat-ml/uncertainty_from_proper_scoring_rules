@@ -11,10 +11,42 @@ import torch.nn as nn
 import torch.nn.init as init
 
 from models import VGG as VGG19_Cifar10, ResNet18
+from typing import Optional
 import random
 import torch
 import torchvision
 import torchvision.transforms as transforms
+
+
+class CIFAR10MissedLabels(torch.utils.data.Dataset):
+    def __init__(
+            self,
+            root,
+            missed_label: int,
+            train=True,
+            transform=None,
+            target_transform=None,
+            download=False,):
+        self.dataset = torchvision.datasets.CIFAR10(
+            root=root, train=train, download=download, transform=transform)
+        self.target_transform = target_transform
+        self.missed_label = missed_label
+
+    def __getitem__(self, index):
+        image, label = self.dataset[index]
+
+        if label == self.missed_label:
+            label = (label + 1) % 10
+
+        # Apply any target transformations (if any)
+        if self.target_transform:
+            label = self.target_transform(label)
+
+        return image, label
+
+    def __len__(self):
+        # Return the length of the original CIFAR-10 dataset
+        return len(self.dataset)
 
 
 class CIFAR10NoisyLabels(torch.utils.data.Dataset):
@@ -104,7 +136,7 @@ def get_model(
     return net
 
 
-def get_dataloaders(dataset: str):
+def get_dataloaders(dataset: str, missed_label: Optional[int] = None):
     # Data
     print('==> Preparing data..')
     transform_train, transform_test = get_transforms()
@@ -152,6 +184,20 @@ def get_dataloaders(dataset: str):
             transform=transform_test)
         testloader = torch.utils.data.DataLoader(
             testset, batch_size=100, shuffle=False)
+        
+    elif dataset == 'missed_class_cifar10':
+        trainset = CIFAR10MissedLabels(
+            root='./data', train=True, download=True,
+            transform=transform_train, missed_label=missed_label)
+        trainloader = torch.utils.data.DataLoader(
+            trainset, batch_size=128, shuffle=True,)
+
+        testset = torchvision.datasets.CIFAR10(
+            root='./data', train=False, download=True,
+            transform=transform_test)
+        testloader = torch.utils.data.DataLoader(
+            testset, batch_size=100, shuffle=False)
+
     else:
         raise ValueError(f"{dataset} --  no such dataset available.")
 

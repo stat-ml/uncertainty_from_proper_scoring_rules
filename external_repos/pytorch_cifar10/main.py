@@ -1,13 +1,13 @@
 '''Train CIFAR10 with PyTorch.'''
+from losses import get_loss_function
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import os
+import argparse
+from utils import progress_bar, get_dataloaders, get_model
 import sys
 sys.path.insert(0, '../../src')
-from utils import progress_bar, get_dataloaders, get_model
-import argparse
-import os
-import torch.optim as optim
-import torch.nn as nn
-import torch
-from losses import get_loss_function
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
@@ -16,8 +16,13 @@ parser.add_argument('--model_id', type=int,
                     help='model id (for ensembles)', default=0)
 parser.add_argument('--architecture', choices=['resnet18', 'vgg'],
                     type=str, help='Model architecture.', default='resnet18')
-parser.add_argument('--dataset', choices=['cifar10', 'noisy_cifar10', 'svhn'],
-                    type=str, help='Training dataset.', default='cifar10')
+parser.add_argument('--dataset', choices=[
+    'cifar10',
+    'noisy_cifar10',
+    'svhn',
+    'missed_class_cifar10',
+],
+    type=str, help='Training dataset.', default='cifar10')
 parser.add_argument('--loss',
                     choices=['cross_entropy', 'brier_score',
                              'spherical_score', 'neglog_score'],
@@ -40,7 +45,10 @@ best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
 # Data
-trainloader, testloader = get_dataloaders(dataset=args.dataset)
+trainloader, testloader = get_dataloaders(
+    dataset=args.dataset,
+    missed_label=model_id // 2,
+)
 
 
 print(f'Using {architecture} for training...')
@@ -136,6 +144,8 @@ def test(epoch):
             save_folder = 'checkpoints'
         elif args.dataset == 'noisy_cifar10':
             save_folder = 'checkpoints_noisy_cifar10'
+        elif args.dataset == 'missed_class_cifar10':
+            save_folder = 'checkpoints_missed_class_cifar10'
         elif args.dataset == 'svhn':
             save_folder = 'checkpoints_svhn'
         else:
@@ -148,6 +158,11 @@ def test(epoch):
         torch.save(
             state,
             f'./{save_folder}/{architecture}/{loss_name}/{model_id}/ckpt.pth')
+        if args.dataset == 'missed_class_cifar10':
+            torch.save(
+                trainloader.dataset,
+                f'./{save_folder}/{architecture}/{loss_name}/{model_id}/dataset.pth',
+            )
         best_acc = acc
 
 
