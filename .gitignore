@@ -1,6 +1,7 @@
 # Excluded path added manually
 external_repos/pytorch_cifar100/*.sh
 external_repos/pytorch_cifar10/*.sh
+external_repos/pytorch_cifar10/launch_resnet_ensemble_1.sh
 
 external_repos/pytorch_cifar100/checkpoints/
 external_repos/pytorch_cifar10/checkpoints/
