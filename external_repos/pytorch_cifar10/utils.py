@@ -13,6 +13,7 @@ import torch.nn.init as init
 from models import VGG as VGG19_Cifar10, ResNet18
 from typing import Optional
 import random
+import numpy as np
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -36,7 +37,11 @@ class CIFAR10MissedLabels(torch.utils.data.Dataset):
         image, label = self.dataset[index]
 
         if label == self.missed_label:
-            label = (label + 1) % 10
+            new_index = np.random.randint(low=0, high=len(self.dataset))
+            image, label = self.dataset[new_index]
+            while label == self.missed_label:
+                new_index = np.random.randint(low=0, high=len(self.dataset))
+                image, label = self.dataset[new_index]
 
         # Apply any target transformations (if any)
         if self.target_transform:
@@ -184,7 +189,7 @@ def get_dataloaders(dataset: str, missed_label: Optional[int] = None):
             transform=transform_test)
         testloader = torch.utils.data.DataLoader(
             testset, batch_size=100, shuffle=False)
-        
+
     elif dataset == 'missed_class_cifar10':
         trainset = CIFAR10MissedLabels(
             root='./data', train=True, download=True,
