@@ -1,13 +1,4 @@
-import sys
-sys.path.insert(0, 'external_repos/pytorch_cifar100')
-sys.path.insert(0, 'external_repos/pytorch_cifar10')
-from collections import defaultdict
-from tqdm.auto import tqdm
-import json
-import torch
-import numpy as np
-from typing import Optional
-from sklearn.metrics import classification_report
+import os
 from data_utils import (
     load_dataloader_for_extraction,
     make_load_path,
@@ -16,7 +7,16 @@ from data_utils import (
     load_embeddings_dict,
     load_model_checkpoint
 )
-import os
+from sklearn.metrics import classification_report
+from typing import Optional
+import numpy as np
+import torch
+import json
+from tqdm.auto import tqdm
+from collections import defaultdict
+import sys
+sys.path.insert(0, 'external_repos/pytorch_cifar100')
+sys.path.insert(0, 'external_repos/pytorch_cifar10')
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
@@ -232,7 +232,12 @@ def collect_stats(
 
 if __name__ == '__main__':
     architecture = 'vgg'  # 'resnet18' 'vgg'
-    training_datasets = ['cifar100', 'cifar10']  # ['cifar10', 'cifar100']
+    training_datasets = [
+        'cifar100',
+        'cifar10',
+        'noisy_cifar10',
+        'missed_class_cifar10',
+    ]  # ['cifar10', 'cifar100']
     model_ids = np.arange(20)
 
     # iterate over training datasets
@@ -247,7 +252,7 @@ if __name__ == '__main__':
             'cifar100',
             'svhn',
             'blurred_cifar100',
-            'blurred_cifar10'
+            'blurred_cifar10',
         ]:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [

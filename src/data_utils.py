@@ -1,16 +1,17 @@
-from external_repos.pytorch_cifar10.utils import (
-    get_transforms as get_cifar10_transforms,
-)
+from external_repos.pytorch_cifar10.utils import get_model
+from string import Template
+import pickle
+from torchvision import transforms
+import torchvision
+import torch.nn as nn
+import torch
+import os
 from external_repos.pytorch_cifar100.utils import (
     get_transforms as get_cifar100_transforms,
 )
-import os
-import torch
-import torch.nn as nn
-import torchvision
-from torchvision import transforms
-import pickle
-from external_repos.pytorch_cifar10.utils import get_model
+from external_repos.pytorch_cifar10.utils import (
+    get_transforms as get_cifar10_transforms,
+)
 import sys
 sys.path.insert(0, './')
 
@@ -32,18 +33,38 @@ def make_load_path(
     Returns:
         _type_: _description_
     """
+    path_to_folder = Template(
+        (f'./external_repos/'
+         '$code_folder/'
+         '$checkpoint_folder/'
+         f'{architecture}/{loss_function_name}/{model_id}/')
+    )
     if dataset_name == 'cifar10':
-        return (f'./external_repos/'
-                'pytorch_cifar10/'
-                'checkpoints/'
-                f'{architecture}/{loss_function_name}/{model_id}/')
+        code_folder = 'pytorch_cifar10'
+        checkpoint_folder = 'checkpoints'
+
+    elif dataset_name == 'noisy_cifar10':
+        code_folder = 'pytorch_cifar10'
+        checkpoint_folder = 'checkpoints_noisy_cifar10'
+
+    elif dataset_name == 'missed_class_cifar10':
+        code_folder = 'pytorch_cifar10'
+        checkpoint_folder = 'checkpoints_missed_class_cifar10'
+
+    elif dataset_name == 'svhn':
+        code_folder = 'pytorch_cifar10'
+        checkpoint_folder = 'checkpoints_svhn'
+
     elif dataset_name == 'cifar100':
-        return (f'./external_repos/'
-                'pytorch_cifar100/'
-                'checkpoints/'
-                f'{architecture}/{loss_function_name}/{model_id}/')
+        code_folder = 'pytorch_cifar100'
+        checkpoint_folder = 'checkpoints'
+
     else:
         raise ValueError('No such dataset name supported.')
+
+    return path_to_folder.substitute(
+        code_folder=code_folder, checkpoint_folder=checkpoint_folder
+    )
 
 
 def load_dataloader_for_extraction(
