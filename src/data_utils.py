@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, './')
 from external_repos.pytorch_cifar10.utils import get_model
 from string import Template
 import pickle
@@ -12,8 +14,6 @@ from external_repos.pytorch_cifar100.utils import (
 from external_repos.pytorch_cifar10.utils import (
     get_transforms as get_cifar10_transforms,
 )
-import sys
-sys.path.insert(0, './')
 
 
 def make_load_path(

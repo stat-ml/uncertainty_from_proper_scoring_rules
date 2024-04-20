@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, 'external_repos/pytorch_cifar100')
+sys.path.insert(0, 'external_repos/pytorch_cifar10')
 import os
 from data_utils import (
     load_dataloader_for_extraction,
@@ -14,9 +17,6 @@ import torch
 import json
 from tqdm.auto import tqdm
 from collections import defaultdict
-import sys
-sys.path.insert(0, 'external_repos/pytorch_cifar100')
-sys.path.insert(0, 'external_repos/pytorch_cifar10')
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
