@@ -6,6 +6,7 @@ external_repos/pytorch_cifar10/launch_resnet_ensemble_1.sh
 external_repos/pytorch_cifar100/checkpoints/
 external_repos/pytorch_cifar10/checkpoints/
 external_repos/pytorch_cifar10/checkpoints_noisy_cifar10/
+external_repos/pytorch_cifar10/checkpoints_missed_class_cifar10/
 external_repos/pytorch_cifar10/data/
 external_repos/FERPlus/
 data/
