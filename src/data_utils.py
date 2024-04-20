@@ -1,18 +1,18 @@
-import sys
-sys.path.insert(0, './')
-from external_repos.pytorch_cifar10.utils import get_model
-import pickle
-from torchvision import transforms
-import torchvision
-import torch.nn as nn
-import torch
-import os
-from external_repos.pytorch_cifar100.utils import (
-    get_transforms as get_cifar100_transforms,
-)
 from external_repos.pytorch_cifar10.utils import (
     get_transforms as get_cifar10_transforms,
 )
+from external_repos.pytorch_cifar100.utils import (
+    get_transforms as get_cifar100_transforms,
+)
+import os
+import torch
+import torch.nn as nn
+import torchvision
+from torchvision import transforms
+import pickle
+from external_repos.pytorch_cifar10.utils import get_model
+import sys
+sys.path.insert(0, './')
 
 
 def make_load_path(
@@ -101,7 +101,9 @@ def load_dataloader_for_extraction(
             transform=ind_transforms
         )
 
-    elif extraction_dataset_name == 'cifar10':
+    elif extraction_dataset_name in [
+        'cifar10', 'noisy_cifar10', 'missed_class_cifar10'
+    ]:
         dataset = torchvision.datasets.CIFAR10(
             root='./datasets',
             train=False,
