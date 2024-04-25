@@ -36,12 +36,9 @@ class CIFAR10MissedLabels(torch.utils.data.Dataset):
     def __getitem__(self, index):
         image, label = self.dataset[index]
 
-        if label == self.missed_label:
+        while label == self.missed_label:
             new_index = np.random.randint(low=0, high=len(self.dataset))
             image, label = self.dataset[new_index]
-            while label == self.missed_label:
-                new_index = np.random.randint(low=0, high=len(self.dataset))
-                image, label = self.dataset[new_index]
 
         # Apply any target transformations (if any)
         if self.target_transform:
