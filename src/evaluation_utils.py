@@ -231,14 +231,11 @@ def collect_stats(
 
 
 if __name__ == '__main__':
-    architecture = 'vgg'  # 'resnet18' 'vgg'
+    architecture = 'resnet18'  # 'resnet18' 'vgg'
     training_datasets = [
-        'cifar100',
-        'cifar10',
-        'noisy_cifar10',
         'missed_class_cifar10',
     ]  # ['cifar10', 'cifar100']
-    model_ids = np.arange(20)
+    model_ids = np.arange(6)
 
     # iterate over training datasets
     for training_dataset_name in training_datasets:
@@ -256,9 +253,7 @@ if __name__ == '__main__':
         ]:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
-                'brier_score',
                 'cross_entropy',
-                'spherical_score'
             ]:
                 # different loss functions
                 for model_id in model_ids:
