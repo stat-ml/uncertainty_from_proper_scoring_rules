@@ -29,7 +29,7 @@ def train(epoch):
 
     start = time.time()
     net.train()
-    for batch_index, (images, labels) in enumerate(cifar100_training_loader):
+    for batch_index, (images, labels) in enumerate(training_loader):
 
         if args.gpu:
             labels = labels.cuda()
@@ -41,7 +41,7 @@ def train(epoch):
         loss.backward()
         optimizer.step()
 
-        n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
+        n_iter = (epoch - 1) * len(training_loader) + batch_index + 1
 
         last_layer = list(net.children())[-1]
         for name, para in last_layer.named_parameters():
@@ -57,7 +57,7 @@ def train(epoch):
             optimizer.param_groups[0]['lr'],
             epoch=epoch,
             trained_samples=batch_index * args.b + len(images),
-            total_samples=len(cifar100_training_loader.dataset)
+            total_samples=len(training_loader.dataset)
         ))
 
         # update training loss for each iteration
@@ -85,7 +85,7 @@ def eval_training(epoch=0, tb=True):
     test_loss = 0.0  # cost function error
     correct = 0.0
 
-    for (images, labels) in cifar100_test_loader:
+    for (images, labels) in test_loader:
 
         if args.gpu:
             images = images.cuda()
@@ -105,8 +105,8 @@ def eval_training(epoch=0, tb=True):
     print('Evaluating Network.....')
     print('Test set: Epoch: {}, Average loss: {:.4f}, Accuracy: {:.4f}, Time consumed:{:.2f}s'.format(
         epoch,
-        test_loss / len(cifar100_test_loader.dataset),
-        correct.float() / len(cifar100_test_loader.dataset),
+        test_loss / len(test_loader.dataset),
+        correct.float() / len(test_loader.dataset),
         finish - start
     ))
     print()
@@ -114,11 +114,11 @@ def eval_training(epoch=0, tb=True):
     # add informations to tensorboard
     if tb:
         writer.add_scalar('Test/Average loss', test_loss /
-                          len(cifar100_test_loader.dataset), epoch)
+                          len(test_loader.dataset), epoch)
         writer.add_scalar('Test/Accuracy', correct.float() /
-                          len(cifar100_test_loader.dataset), epoch)
+                          len(test_loader.dataset), epoch)
 
-    return correct.float() / len(cifar100_test_loader.dataset)
+    return correct.float() / len(test_loader.dataset)
 
 
 if __name__ == '__main__':
@@ -145,12 +145,22 @@ if __name__ == '__main__':
                         type=str,
                         help='Name of the loss function.',
                         default='neglog_score')
+    parser.add_argument('--dataset', choices=[
+        'cifar100',
+        'noisy_cifar100',
+        'missed_class_cifar100',
+    ],
+        type=str, help='Training dataset.', default='cifar100')
+
     args = parser.parse_args()
 
     ####
     architecture = args.architecture
     model_id = args.model_id
     loss_name = args.loss
+
+    if args.dataset != 'cifar100':
+        save_folder_name = settings.CHECKPOINT_PATH + '_' + args.dataset
     ####
 
     print(f'Using {architecture} for training...')
@@ -160,20 +170,22 @@ if __name__ == '__main__':
     net = get_network(args)
 
     # data preprocessing:
-    cifar100_training_loader = get_training_dataloader(
+    training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
         batch_size=args.b,
-        shuffle=True
+        shuffle=True,
+        dataset=args.dataset,
     )
 
-    cifar100_test_loader = get_test_dataloader(
+    test_loader = get_test_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
         batch_size=args.b,
-        shuffle=False
+        shuffle=False,
+        dataset=args.dataset,
     )
 
     loss_function = get_loss_function(loss_name=loss_name)
@@ -181,23 +193,23 @@ if __name__ == '__main__':
                           momentum=0.9, weight_decay=5e-4)
     train_scheduler = optim.lr_scheduler.MultiStepLR(
         optimizer, milestones=settings.MILESTONES, gamma=0.2)  # learning rate decay
-    iter_per_epoch = len(cifar100_training_loader)
+    iter_per_epoch = len(training_loader)
     warmup_scheduler = WarmUpLR(optimizer, iter_per_epoch * args.warm)
 
     # NOTE: I do not plan to resume, hence I do not correct the checkpoints path here.
     if args.resume:
         recent_folder = most_recent_folder(os.path.join(
-            settings.CHECKPOINT_PATH, args.architecture), fmt=settings.DATE_FORMAT)
+            save_folder_name, args.architecture), fmt=settings.DATE_FORMAT)
         if not recent_folder:
             raise Exception('no recent folder were found')
 
         checkpoint_path = os.path.join(
-            settings.CHECKPOINT_PATH, args.architecture, recent_folder)
+            save_folder_name, args.architecture, recent_folder)
 
     else:
-       # checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.architecture, settings.TIME_NOW)
+       # checkpoint_path = os.path.join(save_folder_name, args.architecture, settings.TIME_NOW)
         checkpoint_path = os.path.join(
-            settings.CHECKPOINT_PATH, architecture, loss_name, str(model_id))
+            save_folder_name, architecture, loss_name, str(model_id))
 
     # use tensorboard
     if not os.path.exists(settings.LOG_DIR):
@@ -221,10 +233,10 @@ if __name__ == '__main__':
     best_acc = 0.0
     if args.resume:
         best_weights = best_acc_weights(os.path.join(
-            settings.CHECKPOINT_PATH, args.architecture, recent_folder))
+            save_folder_name, args.architecture, recent_folder))
         if best_weights:
             weights_path = os.path.join(
-                settings.CHECKPOINT_PATH, args.architecture, recent_folder, best_weights)
+                save_folder_name, args.architecture, recent_folder, best_weights)
             print('found best acc weights file:{}'.format(weights_path))
             print('load best training file to test acc...')
             net.load_state_dict(torch.load(weights_path))
@@ -232,16 +244,16 @@ if __name__ == '__main__':
             print('best acc is {:0.2f}'.format(best_acc))
 
         recent_weights_file = most_recent_weights(os.path.join(
-            settings.CHECKPOINT_PATH, args.architecture, recent_folder))
+            save_folder_name, args.architecture, recent_folder))
         if not recent_weights_file:
             raise Exception('no recent weights file were found')
         weights_path = os.path.join(
-            settings.CHECKPOINT_PATH, args.architecture, recent_folder, recent_weights_file)
+            save_folder_name, args.architecture, recent_folder, recent_weights_file)
         print('loading weights file {} to resume training.....'.format(weights_path))
         net.load_state_dict(torch.load(weights_path))
 
         resume_epoch = last_epoch(os.path.join(
-            settings.CHECKPOINT_PATH, args.architecture, recent_folder))
+            save_folder_name, args.architecture, recent_folder))
 
     for epoch in range(1, settings.EPOCH + 1):
         if epoch > args.warm:

@@ -1,19 +1,19 @@
 import sys
 sys.path.insert(0, './')
-from external_repos.pytorch_cifar10.utils import (
-    get_transforms as get_cifar10_transforms,
-)
+from external_repos.pytorch_cifar10.utils import get_model
+from string import Template
+import pickle
+from torchvision import transforms
+import torchvision
+import torch.nn as nn
+import torch
+import os
 from external_repos.pytorch_cifar100.utils import (
     get_transforms as get_cifar100_transforms,
 )
-import os
-import torch
-import torch.nn as nn
-import torchvision
-from torchvision import transforms
-import pickle
-from string import Template
-from external_repos.pytorch_cifar10.utils import get_model
+from external_repos.pytorch_cifar10.utils import (
+    get_transforms as get_cifar10_transforms,
+)
 
 
 def make_load_path(
@@ -46,6 +46,10 @@ def make_load_path(
     elif dataset_name == 'noisy_cifar10':
         code_folder = 'pytorch_cifar10'
         checkpoint_folder = 'checkpoints_noisy_cifar10'
+
+    elif dataset_name == 'noisy_cifar100':
+        code_folder = 'pytorch_cifar100'
+        checkpoint_folder = 'checkpoints_noisy_cifar100'
 
     elif dataset_name == 'missed_class_cifar10':
         code_folder = 'pytorch_cifar10'
@@ -87,7 +91,7 @@ def load_dataloader_for_extraction(
         'cifar10', 'noisy_cifar10', 'missed_class_cifar10'
     ]:
         _, ind_transforms = get_cifar10_transforms()
-    elif training_dataset_name == 'cifar100':
+    elif training_dataset_name in ['cifar100', 'noisy_cifar100']:
         _, ind_transforms = get_cifar100_transforms()
     else:
         ValueError("No such dataset available")

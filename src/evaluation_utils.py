@@ -1,7 +1,13 @@
 import sys
 sys.path.insert(0, 'external_repos/pytorch_cifar100')
 sys.path.insert(0, 'external_repos/pytorch_cifar10')
-import os
+from collections import defaultdict
+from tqdm.auto import tqdm
+import json
+import torch
+import numpy as np
+from typing import Optional
+from sklearn.metrics import classification_report
 from data_utils import (
     load_dataloader_for_extraction,
     make_load_path,
@@ -10,13 +16,7 @@ from data_utils import (
     load_embeddings_dict,
     load_model_checkpoint
 )
-from sklearn.metrics import classification_report
-from typing import Optional
-import numpy as np
-import torch
-import json
-from tqdm.auto import tqdm
-from collections import defaultdict
+import os
 
 
 def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
@@ -234,12 +234,14 @@ if __name__ == '__main__':
     architecture = 'resnet18'  # 'resnet18' 'vgg'
     training_datasets = [
         'missed_class_cifar10',
+        # 'noisy_cifar10',
+        # 'noisy_cifar100',
     ]  # ['cifar10', 'cifar100']
     model_ids = np.arange(6)
 
     # iterate over training datasets
     for training_dataset_name in training_datasets:
-        if training_dataset_name == 'cifar100':
+        if training_dataset_name in ['cifar100', 'noisy_cifar100']:
             n_classes = 100
         else:
             n_classes = 10
@@ -254,6 +256,8 @@ if __name__ == '__main__':
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [
                 'cross_entropy',
+                'brier_score',
+                'spherical_score',
             ]:
                 # different loss functions
                 for model_id in model_ids:

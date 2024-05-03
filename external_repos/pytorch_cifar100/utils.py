@@ -8,12 +8,111 @@ import re
 import datetime
 
 import numpy
+import random
+import torch
+import numpy as np
 
 from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from conf import settings
+
+
+class CIFAR100MissedLabels(torch.utils.data.Dataset):
+    def __init__(
+            self,
+            root,
+            missed_label: int,
+            train=True,
+            transform=None,
+            target_transform=None,
+            download=False,):
+        self.dataset = torchvision.datasets.CIFAR100(
+            root=root, train=train, download=download, transform=transform)
+        self.target_transform = target_transform
+        self.missed_label = missed_label
+
+    def __getitem__(self, index):
+        image, label = self.dataset[index]
+
+        while label == self.missed_label:
+            new_index = np.random.randint(low=0, high=len(self.dataset))
+            image, label = self.dataset[new_index]
+
+        # Apply any target transformations (if any)
+        if self.target_transform:
+            label = self.target_transform(label)
+
+        return image, label
+
+    def __len__(self):
+        # Return the length of the original CIFAR-10 dataset
+        return len(self.dataset)
+
+
+class CIFAR100NoisyLabels(torch.utils.data.Dataset):
+    def __init__(
+            self,
+            root,
+            train=True,
+            transform=None,
+            target_transform=None,
+            download=False):
+        self.dataset = torchvision.datasets.CIFAR100(
+            root=root, train=train, download=download, transform=transform)
+        self.target_transform = target_transform
+        # Pairs of labels to be swapped randomly
+        self.label_pairs = {
+            1: 7,
+            7: 1,
+
+            3: 8,
+            8: 3,
+
+            2: 5,
+            5: 2,
+
+            10: 20,
+            20: 10,
+
+            40: 50,
+            50: 40,
+
+            90: 99,
+            99: 90,
+
+            25: 75,
+            75: 25,
+
+            17: 71,
+            71: 17,
+
+            13: 31,
+            31: 13,
+
+            24: 42,
+            42: 24,
+        }
+
+    def __getitem__(self, index):
+        # Get an item from the original CIFAR-100 dataset
+        image, label = self.dataset[index]
+
+        # If the label is part of a pair,
+        # randomly assign one of the two paired labels
+        if label in self.label_pairs:
+            label = random.choice([label, self.label_pairs[label]])
+
+        # Apply any target transformations (if any)
+        if self.target_transform:
+            label = self.target_transform(label)
+
+        return image, label
+
+    def __len__(self):
+        # Return the length of the original CIFAR-100 dataset
+        return len(self.dataset)
 
 
 def get_network(args):
@@ -184,7 +283,9 @@ def get_transforms(
     return transform_train, transform_test
 
 
-def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
+def get_training_dataloader(
+    mean, std, dataset: str, batch_size=16, num_workers=2,
+        shuffle=True):
     """ return training dataloader
     Args:
         mean: mean of cifar100 training dataset
@@ -198,16 +299,30 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
 
     transform_train, _ = get_transforms(mean=mean, std=std)
 
-    # cifar100_training = CIFAR100Train(path, transform=transform_train)
-    cifar100_training = torchvision.datasets.CIFAR100(
-        root='./data', train=True, download=True, transform=transform_train)
-    cifar100_training_loader = DataLoader(
-        cifar100_training, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
+    if dataset == 'cifar100':
+        training_dataset = torchvision.datasets.CIFAR100(
+            root='./data', train=True, download=True,
+            transform=transform_train)
+    elif dataset == 'noisy_cifar100':
+        training_dataset = CIFAR100NoisyLabels(
+            root='./data', train=True, download=True,
+            transform=transform_train)
+    elif dataset == 'missed_class_cifar100':
+        training_dataset = CIFAR100MissedLabels(
+            root='./data', train=True, download=True,
+            transform=transform_train)
+    else:
+        raise ValueError("No such dataset!")
 
-    return cifar100_training_loader
+    training_loader = DataLoader(
+        training_dataset, shuffle=shuffle,
+        num_workers=num_workers, batch_size=batch_size)
+
+    return training_loader
 
 
-def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
+def get_test_dataloader(mean, std, dataset: str,
+                        batch_size=16, num_workers=2, shuffle=True):
     """ return training dataloader
     Args:
         mean: mean of cifar100 test dataset
@@ -220,17 +335,18 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
     """
     _, transform_test = get_transforms(mean=mean, std=std)
 
-    # cifar100_test = CIFAR100Test(path, transform=transform_test)
-    cifar100_test = torchvision.datasets.CIFAR100(
-        root='./data', train=False, download=True, transform=transform_test)
-    cifar100_test_loader = DataLoader(
-        cifar100_test,
+    test_dataset = torchvision.datasets.CIFAR100(
+        root='./data', train=False, download=True,
+        transform=transform_test)
+
+    test_loader = DataLoader(
+        test_dataset,
         shuffle=shuffle,
         num_workers=num_workers,
         batch_size=batch_size
     )
 
-    return cifar100_test_loader
+    return test_loader
 
 
 def compute_mean_std(cifar100_dataset):

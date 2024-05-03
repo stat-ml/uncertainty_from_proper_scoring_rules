@@ -1,9 +1,14 @@
 from uncertainty_scores import (
-    total_brier,
-    total_logscore,
-    total_neglog,
-    total_maxprob,
-    total_spherical,
+    total_brier_outer,
+    total_logscore_outer,
+    total_neglog_outer,
+    total_maxprob_outer,
+    total_spherical_outer,
+    total_brier_inner,
+    total_logscore_inner,
+    total_neglog_inner,
+    total_maxprob_inner,
+    total_spherical_inner,
     bayes_brier_inner,
     bayes_brier_outer,
     bayes_logscore_inner,
@@ -14,26 +19,57 @@ from uncertainty_scores import (
     bayes_neglog_outer,
     bayes_spherical_inner,
     bayes_spherical_outer,
-    excess_brier_inner,
-    excess_brier_outer,
-    excess_logscore_inner,
-    excess_logscore_outer,
-    excess_maxprob_inner,
-    excess_maxprob_outer,
-    excess_neglog_inner,
-    excess_neglog_outer,
-    excess_spherical_inner,
-    excess_spherical_outer,
+    excess_brier_inner_outer,
+    excess_brier_outer_outer,
+    excess_logscore_inner_outer,
+    excess_logscore_outer_outer,
+    excess_maxprob_inner_outer,
+    excess_maxprob_outer_outer,
+    excess_neglog_inner_outer,
+    excess_neglog_outer_outer,
+    excess_spherical_inner_outer,
+    excess_spherical_outer_outer,
+    excess_brier_outer_inner,
+    excess_logscore_outer_inner,
+    excess_maxprob_outer_inner,
+    excess_neglog_outer_inner,
+    excess_spherical_outer_inner,
     bi_brier,
     bi_logscore,
     bi_maxprob,
     bi_neglog,
     bi_spherical,
-    mutual_information_avg_kl,
-    logscore_bias,
-    logscore_model_variance,
-    logscore_model_variance_plus_mi,
-    logscore_bias_plus_mi,
+    rbi_brier,
+    rbi_logscore,
+    rbi_maxprob,
+    rbi_neglog,
+    rbi_spherical,
+
+    bias_logscore,
+    mv_logscore,
+    mv_bi_logscore,
+    bias_bi_logscore,
+
+    bias_brier,
+    mv_brier,
+    mv_bi_brier,
+    bias_bi_brier,
+
+    bias_maxprob,
+    mv_maxprob,
+    mv_bi_maxprob,
+    bias_bi_maxprob,
+
+    bias_spherical,
+    mv_spherical,
+    mv_bi_spherical,
+    bias_bi_spherical,
+
+    bias_neglog,
+    mv_neglog,
+    mv_bi_neglog,
+    bias_bi_neglog,
+
     posterior_predictive
 )
 from data_utils import make_load_path, load_dict, save_dict
@@ -51,11 +87,18 @@ pd.options.mode.copy_on_write = True
 
 
 uq_funcs_with_names = [
-    ("Total Brier", total_brier),
-    ("Total Logscore", total_logscore),
-    ("Total Neglog", total_neglog),
-    ("Total Maxprob", total_maxprob),
-    ("Total Spherical", total_spherical),
+    ("Total Brier Outer", total_brier_outer),
+    ("Total Logscore Outer", total_logscore_outer),
+    ("Total Neglog Outer", total_neglog_outer),
+    ("Total Maxprob Outer", total_maxprob_outer),
+    ("Total Spherical Outer", total_spherical_outer),
+
+    ("Total Brier Inner", total_brier_inner),
+    ("Total Logscore Inner", total_logscore_inner),
+    ("Total Neglog Inner", total_neglog_inner),
+    ("Total Maxprob Inner", total_maxprob_inner),
+    ("Total Spherical Inner", total_spherical_inner),
+
     ("Bayes Brier Inner", bayes_brier_inner),
     ("Bayes Brier Outer", bayes_brier_outer),
     ("Bayes Logscore Inner", bayes_logscore_inner),
@@ -66,25 +109,60 @@ uq_funcs_with_names = [
     ("Bayes Neglog Outer", bayes_neglog_outer),
     ("Bayes Spherical Inner", bayes_spherical_inner),
     ("Bayes Spherical Outer", bayes_spherical_outer),
-    ("Excess Brier Inner", excess_brier_inner),
-    ("Excess Brier Outer", excess_brier_outer),
-    ("Excess Logscore Inner", excess_logscore_inner),
-    ("Excess Logscore Outer", excess_logscore_outer),
-    ("Excess Maxprob Inner", excess_maxprob_inner),
-    ("Excess Maxprob Outer", excess_maxprob_outer),
-    ("Excess Neglog Inner", excess_neglog_inner),
-    ("Excess Neglog Outer", excess_neglog_outer),
-    ("Excess Spherical Inner", excess_spherical_inner),
-    ("Excess Spherical Outer", excess_spherical_outer),
+
+    ("Excess Brier Inner Outer", excess_brier_inner_outer),
+    ("Excess Brier Outer Outer", excess_brier_outer_outer),
+    ("Excess Logscore Inner Outer", excess_logscore_inner_outer),
+    ("Excess Logscore Outer Outer", excess_logscore_outer_outer),
+    ("Excess Maxprob Inner Outer", excess_maxprob_inner_outer),
+    ("Excess Maxprob Outer Outer", excess_maxprob_outer_outer),
+    ("Excess Neglog Inner Outer", excess_neglog_inner_outer),
+    ("Excess Neglog Outer Outer", excess_neglog_outer_outer),
+    ("Excess Spherical Inner Outer", excess_spherical_inner_outer),
+    ("Excess Spherical Outer Outer", excess_spherical_outer_outer),
+
+    ("Excess Brier Outer Inner", excess_brier_outer_inner),
+    ("Excess Logscore Outer Inner", excess_logscore_outer_inner),
+    ("Excess Maxprob Outer Inner", excess_maxprob_outer_inner),
+    ("Excess Neglog Outer Inner", excess_neglog_outer_inner),
+    ("Excess Spherical Outer Inner", excess_spherical_outer_inner),
+
     ("Bregman Information Brier", bi_brier),
     ("Bregman Information Logscore", bi_logscore),
     ("Bregman Information Maxprob", bi_maxprob),
     ("Bregman Information Neglog", bi_neglog),
     ("Bregman Information Spherical", bi_spherical),
-    ("Logscore Bias term", logscore_bias),
-    ("Logscore Model Variance term", logscore_model_variance),
-    ("Logscore Model Variance + MI", logscore_model_variance_plus_mi),
-    ("Logscore Bias Term + MI", logscore_bias_plus_mi)
+
+    ("Reverse Bregman Information Brier", rbi_brier),
+    ("Reverse Bregman Information Logscore", rbi_logscore),
+    ("Reverse Bregman Information Maxprob", rbi_maxprob),
+    ("Reverse Bregman Information Neglog", rbi_neglog),
+    ("Reverse Bregman Information Spherical", rbi_spherical),
+
+    ("Bias Logscore", bias_logscore),
+    ("MV Logscore", mv_logscore),
+    ("MVBI Logscore", mv_bi_logscore),
+    ("BiasBI Logscore", bias_bi_logscore),
+
+    ("Bias Brier", bias_brier),
+    ("MV Brier", mv_brier),
+    ("MVBI Brier", mv_bi_brier),
+    ("BiasBI Brier", bias_bi_brier),
+
+    ("Bias Maxprob", bias_maxprob),
+    ("MV Maxprob", mv_maxprob),
+    ("MVBI Maxprob", mv_bi_maxprob),
+    ("BiasBI Maxprob", bias_bi_maxprob),
+
+    ("Bias Spherical", bias_spherical),
+    ("MV Spherical", mv_spherical),
+    ("MVBI Spherical", mv_bi_spherical),
+    ("BiasBI Spherical", bias_bi_spherical),
+
+    ("Bias Neglog", bias_neglog),
+    ("MV Neglog", mv_neglog),
+    ("MVBI Neglog", mv_bi_neglog),
+    ("BiasBI Neglog", bias_bi_neglog),
 ]
 
 
@@ -135,6 +213,7 @@ def get_uncertainty_scores(
         temperature: float = 1.0,
         use_cheating_approximation: bool = False,
         gt_prob_approx: str = 'same',
+        use_cached: bool = True,
 ) -> tuple[dict, dict, dict]:
     """
     The function extracts uncertainty scores from a list of datasets.
@@ -153,7 +232,7 @@ def get_uncertainty_scores(
         *folder_path.split('/')[:-3], 'extracted_information_for_notebook.pkl'
     )
 
-    if os.path.exists(extracted_embeddings_file_path):
+    if use_cached and os.path.exists(extracted_embeddings_file_path):
         res_dict = load_dict(extracted_embeddings_file_path)
         uq_results, embeddings_per_dataset, targets_per_dataset = (
             res_dict['uq_results'],
@@ -431,8 +510,8 @@ def get_raw_scores_dataframe(
         for loss_name, datasets in loss_funcs.items():
             for dataset_name, scores in datasets.items():
                 data.append({
-                    'UQ Method': uq_name,
-                    'Loss Function': loss_name,
+                    'UQMetric': uq_name,
+                    'LossFunction': loss_name,
                     'Dataset': dataset_name,
                     'Scores': scores
                 })
