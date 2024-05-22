@@ -1,4 +1,4 @@
-from uncertainty_scores import (
+from vectorizer_uncertainty_scores import (
     total_brier_outer,
     total_logscore_outer,
     total_neglog_outer,
@@ -34,6 +34,11 @@ from uncertainty_scores import (
     excess_maxprob_outer_inner,
     excess_neglog_outer_inner,
     excess_spherical_outer_inner,
+    excess_brier_inner_inner,
+    excess_logscore_inner_inner,
+    excess_maxprob_inner_inner,
+    excess_neglog_inner_inner,
+    excess_spherical_inner_inner,
     bi_brier,
     bi_logscore,
     bi_maxprob,
@@ -127,6 +132,12 @@ uq_funcs_with_names = [
     ("Excess Neglog Outer Inner", excess_neglog_outer_inner),
     ("Excess Spherical Outer Inner", excess_spherical_outer_inner),
 
+    ("Excess Brier Inner Inner", excess_brier_inner_inner),
+    ("Excess Logscore Inner Inner", excess_logscore_inner_inner),
+    ("Excess Maxprob Inner Inner", excess_maxprob_inner_inner),
+    ("Excess Neglog Inner Inner", excess_neglog_inner_inner),
+    ("Excess Spherical Inner Inner", excess_spherical_inner_inner),
+
     ("Bregman Information Brier", bi_brier),
     ("Bregman Information Logscore", bi_logscore),
     ("Bregman Information Maxprob", bi_maxprob),
@@ -138,6 +149,17 @@ uq_funcs_with_names = [
     ("Reverse Bregman Information Maxprob", rbi_maxprob),
     ("Reverse Bregman Information Neglog", rbi_neglog),
     ("Reverse Bregman Information Spherical", rbi_spherical),
+
+    ("Expected Pairwise Bregman Information Brier",
+     excess_brier_outer_outer),
+    ("Expected Pairwise Bregman Information Logscore",
+     excess_logscore_outer_outer),
+    ("Expected Pairwise Bregman Information Maxprob",
+     excess_maxprob_outer_outer),
+    ("Expected Pairwise Bregman Information Neglog",
+     excess_neglog_outer_outer),
+    ("Expected Pairwise Bregman Information Spherical",
+     excess_spherical_outer_outer),
 
     ("Bias Logscore", bias_logscore),
     ("MV Logscore", mv_logscore),
@@ -242,6 +264,7 @@ def get_uncertainty_scores(
         return uq_results, embeddings_per_dataset, targets_per_dataset
 
     uq_results = {}
+    embeddings_per_dataset_all = {}
 
     for uq_name, uncertainty_func in tqdm(uq_funcs_with_names):
         uq_results[uq_name] = {}
@@ -256,6 +279,8 @@ def get_uncertainty_scores(
             )
 
             uq_results[uq_name][loss_function_name] = {}
+            embeddings_per_dataset_all[
+                loss_function_name] = embeddings_per_dataset
 
             for dataset_ in list_extraction_datasets:
                 ########
@@ -280,13 +305,13 @@ def get_uncertainty_scores(
 
     res_dict = {
         'uq_results': uq_results,
-        'embeddings_per_dataset': embeddings_per_dataset,
+        'embeddings_per_dataset': embeddings_per_dataset_all,
         'targets_per_dataset': targets_per_dataset,
     }
     save_dict(
         dict_to_save=res_dict,
         save_path=extracted_embeddings_file_path)
-    return uq_results, embeddings_per_dataset, targets_per_dataset
+    return uq_results, embeddings_per_dataset_all, targets_per_dataset
 
 
 def create_gt_embeddings(
@@ -336,12 +361,15 @@ def get_predicted_labels(
     """
     The function returns predicted labels given embeddings for a given dataset
     """
-    pred_labels = np.argmax(
-        posterior_predictive(
-            embeddings_per_dataset[training_dataset_name])[0],
-        axis=-1
-    )
-    return pred_labels
+    pred_labels_dict = {}
+    for loss in embeddings_per_dataset:
+        pred_labels = np.argmax(
+            posterior_predictive(
+                embeddings_per_dataset[loss][training_dataset_name])[0],
+            axis=-1
+        )
+        pred_labels_dict[loss] = pred_labels
+    return pred_labels_dict
 
 
 def get_ood_detection_dataframe(
@@ -419,7 +447,7 @@ def get_missclassification_dataframe(
         # print(f'Misclassification computed via {uq_name}')
 
         for loss_ in uq_results[uq_name].keys():
-            y_true = (true_labels != pred_labels).astype(np.int32)
+            y_true = (true_labels != pred_labels[loss_]).astype(np.int32)
             y_score = uq_results[uq_name][loss_][ind_dataset]
 
             score = roc_auc_score(y_true=y_true, y_score=y_score)
@@ -513,7 +541,7 @@ def get_raw_scores_dataframe(
                     'UQMetric': uq_name,
                     'LossFunction': loss_name,
                     'Dataset': dataset_name,
-                    'Scores': scores
+                    'Scores': list(scores)
                 })
 
     df = pd.DataFrame(data)

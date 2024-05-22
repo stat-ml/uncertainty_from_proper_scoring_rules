@@ -13,6 +13,8 @@ external_repos/pytorch_cifar100/checkpoints_noisy_cifar100/
 external_repos/pytorch_cifar10/data/
 external_repos/FERPlus/
 data/
+imgs/
+tables/
 datasets/
 notebooks/
 src/tests/test_risks.py

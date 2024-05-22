@@ -2,62 +2,6 @@ import numpy as np
 from scipy.special import logsumexp
 
 
-def compute_bias(
-        logits_gt,
-        logits_pred,
-        central_prediction,
-        func_,
-):
-    ppd = posterior_predictive(logits_=logits_gt)
-    logits_ppd = np.log(ppd)
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-
-    central_pred = central_prediction(logits_pred)
-    logits_central_pred = np.log(central_pred)
-    logits_central_pred = np.repeat(
-        logits_central_pred, logits_pred.shape[0], axis=0)
-
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_central_pred,
-        func_=func_
-    )
-    return res
-
-
-def compute_model_variance(
-        logits_gt,
-        logits_pred,
-        central_prediction,
-        func_,
-):
-    central_pred = central_prediction(logits_gt)
-    logits_central_pred = np.log(central_pred)
-    logits_central_pred = np.repeat(
-        logits_central_pred, logits_pred.shape[0], axis=0)
-
-    res = make_pairwise_calculation(
-        logits_gt=logits_central_pred,
-        logits_pred=logits_pred,
-        func_=func_
-    )
-    return res
-
-
-def make_pairwise_calculation(
-        logits_gt: np.ndarray,
-        logits_pred: np.ndarray,
-        func_: callable,
-):
-    all_pairs = []
-    for l_gt in logits_gt:
-        for l_pred in logits_pred:
-            specific_pair = func_(l_gt, l_pred)
-            all_pairs.append(specific_pair)
-    all_pairs = np.vstack(all_pairs)
-    return np.mean(all_pairs, axis=0)
-
-
 def safe_softmax(x):
     """Softmax
 
@@ -71,7 +15,7 @@ def safe_softmax(x):
     return e_x / e_x.sum(axis=-1, keepdims=True)
 
 
-def logscore_distance(left_logits, right_logits):
+def safe_kl_divergence(left_logits, right_logits):
     """KL divergence
 
     Args:
@@ -82,39 +26,124 @@ def logscore_distance(left_logits, right_logits):
         _type_: _description_
     """
     p_safe = safe_softmax(left_logits)
-    res = np.sum(
+    return np.sum(
         p_safe * (left_logits - right_logits +
                   logsumexp(right_logits, axis=-1, keepdims=True)
                   - logsumexp(left_logits, axis=-1, keepdims=True)), axis=-1)
-    return res
 
 
-def maxprob_diff(logits_gt, logits_pred):
+def pairwise_kl(logits_gt, logits_pred):
+    """Pairwise KL for two np.ndarray objects
+
+    Args:
+        logits_gt (_type_): _description_
+        logits_pred (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    logits_gt_exp = logits_gt[:, np.newaxis, :, :]
+    logits_pred_exp = logits_pred[np.newaxis, :, :, :]
+
+    kl_divs = safe_kl_divergence(logits_gt_exp, logits_pred_exp)
+
+    return kl_divs
+
+
+def pairwise_ce(logits_gt, logits_pred):
+    """Pairwise CE for two np.ndarray objects
+
+    Args:
+        logits_gt (_type_): _description_
+        logits_pred (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    logits_gt_exp = logits_gt[:, np.newaxis, :, :]
+    logits_pred_exp = logits_pred[np.newaxis, :, :, :]
+
+    gt_exp = safe_softmax(logits_gt_exp)
+
+    ce_divs = np.sum(
+        -gt_exp * (
+            logits_pred_exp - logsumexp(
+                logits_pred_exp, axis=-1, keepdims=True)
+        ), axis=-1
+    )
+
+    return ce_divs
+
+
+def pairwise_brier(logits_gt, logits_pred):
+    """Pairwise Brier
+
+    Args:
+        logits_gt (_type_): _description_
+        logits_pred (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    p_exp = safe_softmax(logits_gt)[np.newaxis, :, :, :]
+    q_exp = safe_softmax(logits_pred)[:, np.newaxis, :, :]
+
+    brier_divs = np.sum((p_exp - q_exp) ** 2, axis=-1)
+
+    return brier_divs
+
+
+def select_by_indices(array, indices):
+    new_array = np.empty((array.shape[0], array.shape[1]))
+    for i in range(array.shape[0]):
+        for j in range(array.shape[1]):
+            new_array[i, j] = array[i, j, indices[i, j]]
+    return new_array
+
+
+def pairwise_prob_diff(logits_gt, logits_pred):
+    """Pairwise probability difference
+
+    Args:
+        logits_gt (_type_): _description_
+        logits_pred (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     prob_gt = safe_softmax(logits_gt)
     prob_pred = safe_softmax(logits_pred)
 
-    if len(prob_gt.shape) > 2:
-        prob_gt = prob_gt[0]
-    if len(prob_pred.shape) > 2:
-        prob_pred = prob_pred[0]
+    argmax_indices = np.argmax(prob_pred, axis=-1)
 
-    diffs = []
-    for gt_prob, est_prob in zip(prob_gt, prob_pred):
-        diffs.append(np.max(gt_prob) - gt_prob[np.argmax(est_prob)])
-    diffs = np.hstack(diffs)
-    return diffs
+    model_indices = np.arange(prob_gt.shape[0])
+    object_indices = np.arange(prob_gt.shape[1])
+    selected_class_indices = argmax_indices
 
+    selected_data = prob_gt[
+        model_indices[:, None, None],
+        object_indices,
+        selected_class_indices,
+    ].transpose(1, 0, 2)
 
-def brier_distance(logits_gt, logits_pred):
-    prob_gt = safe_softmax(logits_gt)
-    prob_pred = safe_softmax(logits_pred)
+    prob_divs = np.max(prob_gt, axis=-1)[:, None, :] - selected_data
 
-    res = np.sum((prob_gt - prob_pred)**2, axis=-1)
-
-    return res
+    return prob_divs
 
 
-def neglog_distance(logits_gt, logits_pred):
+def pairwise_IS_distance(logits_gt, logits_pred):
+    """Pairwise Itakura–Saito distance
+
+    Args:
+        logits_gt (_type_): _description_
+        logits_pred (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    logits_gt = logits_gt[:, np.newaxis, :, :]
+    logits_pred = logits_pred[np.newaxis, :, :, :]
+
     p_exp = safe_softmax(logits_gt)
     q_exp = safe_softmax(logits_pred)
 
@@ -128,18 +157,26 @@ def neglog_distance(logits_gt, logits_pred):
     return is_dist
 
 
-def spherical_distance(logits_gt, logits_pred):
-    p_prob = safe_softmax(logits_gt)
-    q_prob = safe_softmax(logits_pred)
+def pairwise_spherical(logits_gt, logits_pred):
+    """Pairwise spherical
 
-    p_norm = np.linalg.norm(p_prob, ord=2, axis=-1, keepdims=True)
-    q_norm = np.linalg.norm(q_prob, ord=2, axis=-1, keepdims=True)
+    Args:
+        logits_gt (_type_): _description_
+        logits_pred (_type_): _description_
 
-    pairwise_dot = np.sum(
-        (p_prob / p_norm) * (q_prob / q_norm),
-        axis=-1)
+    Returns:
+        _type_: _description_
+    """
+    p_exp = safe_softmax(logits_gt)[:, np.newaxis, :, :]
+    q_exp = safe_softmax(logits_pred)[np.newaxis, :, :, :]
 
-    spherical_divs = p_norm[..., 0] * (1 - pairwise_dot)
+    p_exp_normed = p_exp / np.linalg.norm(p_exp, ord=2, axis=-1, keepdims=True)
+    q_exp_normed = q_exp / np.linalg.norm(q_exp, ord=2, axis=-1, keepdims=True)
+
+    p_normed = np.linalg.norm(p_exp, ord=2, axis=-1)
+    pairwise_dot = np.sum(p_exp_normed * q_exp_normed, axis=-1)
+
+    spherical_divs = p_normed * (1 - pairwise_dot)
 
     return spherical_divs
 
@@ -169,26 +206,25 @@ def bias_neglog(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_bias(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=neglog_distance,
-        central_prediction=central_prediction_neglog,
-    )
-    return res
+    ppd = posterior_predictive(logits_=logits_gt)
+    central_pred = central_prediction_neglog(logits_pred)
+    return pairwise_IS_distance(
+        logits_gt=np.log(ppd),
+        logits_pred=np.log(central_pred)
+    ).squeeze()
 
 
 def mv_neglog(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_model_variance(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=neglog_distance,
-        central_prediction=central_prediction_neglog,
-    )
-    return res
+    central_pred = central_prediction_neglog(logits_gt)
+    prob_b = safe_softmax(logits_pred)
+    mv_ = pairwise_IS_distance(
+        logits_gt=np.log(central_pred),
+        logits_pred=np.log(prob_b)
+    ).squeeze()
+    return np.mean(mv_, axis=0)
 
 
 def mv_bi_neglog(
@@ -246,12 +282,9 @@ def excess_neglog_outer_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=neglog_distance
+    return np.mean(
+        pairwise_IS_distance(logits_gt, logits_pred), axis=(0, 1)
     )
-    return res
 
 
 def excess_neglog_outer_inner(
@@ -259,11 +292,11 @@ def excess_neglog_outer_inner(
         logits_pred: np.ndarray
 ) -> np.ndarray:
     logits_ppd = np.log(posterior_predictive(logits_pred))
-    logits_ppd = np.repeat(logits_ppd, logits_gt.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_ppd,
-        func_=neglog_distance
+    res = np.mean(
+        pairwise_IS_distance(
+            logits_gt=logits_gt,
+            logits_pred=logits_ppd),
+        axis=(0, 1)
     )
     return res
 
@@ -272,12 +305,21 @@ def excess_neglog_inner_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_gt))
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_pred,
-        func_=neglog_distance
+    ppd_logits = np.log(posterior_predictive(logits_gt))
+    res = np.mean(
+        pairwise_IS_distance(ppd_logits, logits_pred), axis=(0, 1)
+    )
+    return res
+
+
+def excess_neglog_inner_inner(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    ppd_logits_ = np.log(posterior_predictive(logits_gt))
+    ppd_logits = np.log(posterior_predictive(logits_pred))
+    res = np.mean(
+        pairwise_IS_distance(ppd_logits_, ppd_logits), axis=(0, 1)
     )
     return res
 
@@ -314,26 +356,24 @@ def bias_spherical(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_bias(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=spherical_distance,
-        central_prediction=central_prediction_spherical,
-    )
-    return res
+    ppd = posterior_predictive(logits_=logits_gt)
+    central_pred = central_prediction_spherical(logits_pred)
+    return pairwise_spherical(
+        logits_gt=np.log(ppd),
+        logits_pred=np.log(central_pred)
+    ).squeeze()
 
 
 def mv_spherical(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_model_variance(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=spherical_distance,
-        central_prediction=central_prediction_spherical,
-    )
-    return res
+    central_pred = central_prediction_spherical(logits_gt)
+    prob_b = safe_softmax(logits_pred)
+    return np.mean(pairwise_spherical(
+        logits_gt=np.log(central_pred),
+        logits_pred=np.log(prob_b)
+    ).squeeze(), axis=0)
 
 
 def mv_bi_spherical(
@@ -389,10 +429,8 @@ def excess_spherical_outer_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=spherical_distance
+    res = np.mean(
+        pairwise_spherical(logits_gt, logits_pred), axis=(0, 1)
     )
     return res
 
@@ -402,11 +440,8 @@ def excess_spherical_outer_inner(
         logits_pred: np.ndarray
 ) -> np.ndarray:
     logits_ppd = np.log(posterior_predictive(logits_pred))
-    logits_ppd = np.repeat(logits_ppd, logits_gt.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_ppd,
-        func_=spherical_distance
+    res = np.mean(
+        pairwise_spherical(logits_gt, logits_ppd), axis=(0, 1)
     )
     return res
 
@@ -416,11 +451,20 @@ def excess_spherical_inner_outer(
         logits_pred: np.ndarray
 ) -> np.ndarray:
     logits_ppd = np.log(posterior_predictive(logits_gt))
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_pred,
-        func_=spherical_distance
+    res = np.mean(
+        pairwise_spherical(logits_ppd, logits_pred), axis=(0, 1)
+    )
+    return res
+
+
+def excess_spherical_inner_inner(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    logits_ppd_ = np.log(posterior_predictive(logits_gt))
+    logits_ppd = np.log(posterior_predictive(logits_pred))
+    res = np.mean(
+        pairwise_spherical(logits_ppd_, logits_ppd), axis=(0, 1)
     )
     return res
 
@@ -447,20 +491,19 @@ def central_prediction_maxprob(
         logits_: np.ndarray,
 ):
     n_classes = logits_.shape[-1]
-    res = np.ones_like(logits_[0])[None] / n_classes
-    return res
+    return np.ones_like(logits_[0])[None] / n_classes
 
 
 def bias_maxprob(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_bias(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=maxprob_diff,
-        central_prediction=central_prediction_maxprob,
-    )
+    ppd = posterior_predictive(logits_=logits_gt)
+    central_pred = central_prediction_maxprob(logits_pred)
+    res = pairwise_prob_diff(
+        logits_gt=np.log(ppd),
+        logits_pred=np.log(central_pred)
+    ).squeeze()
     return res
 
 
@@ -468,12 +511,12 @@ def mv_maxprob(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_model_variance(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=maxprob_diff,
-        central_prediction=central_prediction_maxprob,
-    )
+    central_pred = central_prediction_maxprob(logits_gt)
+    prob_b = safe_softmax(logits_pred)
+    res = np.mean(pairwise_prob_diff(
+        logits_gt=np.log(central_pred),
+        logits_pred=np.log(prob_b)
+    ).squeeze(), axis=0)
     return res
 
 
@@ -530,10 +573,9 @@ def excess_maxprob_outer_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=maxprob_diff
+    res = np.mean(
+        pairwise_prob_diff(
+            logits_gt=logits_gt, logits_pred=logits_pred), axis=(0, 1)
     )
     return res
 
@@ -542,12 +584,10 @@ def excess_maxprob_inner_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_gt))
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_pred,
-        func_=maxprob_diff
+    ppd_logits = np.log(posterior_predictive(logits_=logits_gt))
+    res = np.mean(
+        pairwise_prob_diff(
+            logits_gt=ppd_logits, logits_pred=logits_pred), axis=(0, 1)
     )
     return res
 
@@ -556,12 +596,23 @@ def excess_maxprob_outer_inner(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_pred))
-    logits_ppd = np.repeat(logits_ppd, logits_gt.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_ppd,
-        func_=maxprob_diff
+    ppd_logits = np.log(posterior_predictive(logits_=logits_pred))
+    res = np.mean(
+        pairwise_prob_diff(
+            logits_gt=logits_gt, logits_pred=ppd_logits), axis=(0, 1)
+    )
+    return res
+
+
+def excess_maxprob_inner_inner(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    ppd_logits_ = np.log(posterior_predictive(logits_=logits_gt))
+    ppd_logits = np.log(posterior_predictive(logits_=logits_pred))
+    res = np.mean(
+        pairwise_prob_diff(
+            logits_gt=ppd_logits_, logits_pred=ppd_logits), axis=(0, 1)
     )
     return res
 
@@ -581,8 +632,8 @@ def rbi_maxprob(
     return excess_maxprob_inner_outer(
         logits_gt=logits_gt, logits_pred=logits_pred)
 
-############################################################
 
+############################################################
 
 def central_prediction_brier(
         logits_: np.ndarray,
@@ -594,26 +645,24 @@ def bias_brier(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_bias(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        central_prediction=central_prediction_brier,
-        func_=brier_distance,
-    )
-    return res
+    ppd = posterior_predictive(logits_=logits_gt)
+    central_pred = central_prediction_brier(logits_pred)
+    return pairwise_brier(
+        logits_gt=np.log(ppd),
+        logits_pred=np.log(central_pred)
+    ).squeeze()
 
 
 def mv_brier(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_model_variance(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        central_prediction=central_prediction_brier,
-        func_=brier_distance,
-    )
-    return res
+    central_pred = central_prediction_brier(logits_gt)
+    prob_b = safe_softmax(logits_pred)
+    return np.mean(pairwise_brier(
+        logits_gt=np.log(central_pred),
+        logits_pred=np.log(prob_b)
+    ).squeeze(), axis=0)
 
 
 def mv_bi_brier(
@@ -666,40 +715,44 @@ def excess_brier_outer_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=brier_distance
+    return np.mean(
+        pairwise_brier(
+            logits_gt=logits_gt, logits_pred=logits_pred), axis=(0, 1)
     )
-    return res
 
 
 def excess_brier_inner_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_gt))
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_pred,
-        func_=brier_distance
+    ppd_logits = np.log(posterior_predictive(logits_=logits_gt))
+    return np.mean(
+        pairwise_brier(
+            logits_gt=ppd_logits, logits_pred=logits_pred), axis=(0, 1)
     )
-    return res
 
 
 def excess_brier_outer_inner(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_pred))
-    logits_ppd = np.repeat(logits_ppd, logits_gt.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_ppd,
-        func_=brier_distance
+    ppd_logits = np.log(posterior_predictive(logits_=logits_pred))
+    return np.mean(
+        pairwise_brier(
+            logits_gt=logits_gt, logits_pred=ppd_logits), axis=(0, 1)
     )
-    return res
+
+
+def excess_brier_inner_inner(
+        logits_gt: np.ndarray,
+        logits_pred: np.ndarray
+) -> np.ndarray:
+    ppd_logits_ = np.log(posterior_predictive(logits_=logits_gt))
+    ppd_logits = np.log(posterior_predictive(logits_=logits_pred))
+    return np.mean(
+        pairwise_brier(
+            logits_gt=ppd_logits_, logits_pred=ppd_logits), axis=(0, 1)
+    )
 
 
 def bi_brier(
@@ -724,34 +777,30 @@ def central_prediction_logscore(
         logits_: np.ndarray,
 ):
     probs = safe_softmax(logits_)
-    res = safe_softmax(np.mean(np.log(probs), axis=0, keepdims=True))
-    return res
+    return safe_softmax(np.mean(np.log(probs), axis=0, keepdims=True))
 
 
 def bias_logscore(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_bias(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        central_prediction=central_prediction_logscore,
-        func_=logscore_distance,
-    )
-    return res
+    ppd = posterior_predictive(logits_=logits_gt)
+    central_pred = central_prediction_logscore(logits_pred)
+    return safe_kl_divergence(
+        left_logits=np.log(ppd),
+        right_logits=np.log(central_pred)
+    ).squeeze()
 
 
 def mv_logscore(
     logits_pred: np.ndarray,
     logits_gt: np.ndarray,
 ):
-    res = compute_model_variance(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        central_prediction=central_prediction_logscore,
-        func_=logscore_distance,
-    )
-    return res
+    central_pred = central_prediction_logscore(logits_gt)
+    prob_b = safe_softmax(logits_pred)
+    return np.mean(safe_kl_divergence(
+        left_logits=np.log(central_pred),
+        right_logits=np.log(prob_b)), axis=0)
 
 
 def mv_bi_logscore(
@@ -777,11 +826,11 @@ def total_logscore_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    return (
-        excess_logscore_outer_outer(
-            logits_gt=logits_gt, logits_pred=logits_pred)
-        + bayes_logscore_outer(
-            logits_gt=logits_gt, logits_pred=logits_pred)
+    """
+    Expected Pairwise Cross Entropy
+    """
+    return np.mean(
+        pairwise_ce(logits_gt, logits_pred), axis=(0, 1)
     )
 
 
@@ -800,54 +849,43 @@ def excess_logscore_outer_outer(
         logits_gt: np.ndarray,
         logits_pred: np.ndarray
 ) -> np.ndarray:
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_pred,
-        func_=logscore_distance
+    """
+    Expected Pairwise Kullback Leibler
+    """
+    return np.mean(
+        pairwise_kl(logits_gt, logits_pred), axis=(0, 1)
     )
-    return res
 
 
-def excess_logscore_inner_outer(
-        logits_gt: np.ndarray,
-        logits_pred: np.ndarray
-) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_gt))
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_pred,
-        func_=logscore_distance
+def excess_logscore_inner_outer(logits_gt, logits_pred):
+    """
+    Reverse mutual information, computed as Expected KL[ppd | pred]
+    """
+    ppd_logits = np.log(posterior_predictive(logits_=logits_gt))
+    return np.mean(
+        pairwise_kl(ppd_logits, logits_pred), axis=(0, 1)
     )
-    return res
 
 
-def excess_logscore_inner_inner(
-        logits_gt: np.ndarray,
-        logits_pred: np.ndarray
-) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_gt))
-    logits_ppd = np.repeat(logits_ppd, logits_pred.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_ppd,
-        logits_pred=logits_ppd,
-        func_=logscore_distance
+def excess_logscore_outer_inner(logits_gt, logits_pred):
+    """
+    Reverse mutual information, computed as Expected KL[ppd | pred]
+    """
+    ppd_logits = np.log(posterior_predictive(logits_=logits_pred))
+    return np.mean(
+        pairwise_kl(logits_gt, ppd_logits), axis=(0, 1)
     )
-    return res
 
 
-def excess_logscore_outer_inner(
-        logits_gt: np.ndarray,
-        logits_pred: np.ndarray
-) -> np.ndarray:
-    logits_ppd = np.log(posterior_predictive(logits_pred))
-    logits_ppd = np.repeat(logits_ppd, logits_gt.shape[0], axis=0)
-    res = make_pairwise_calculation(
-        logits_gt=logits_gt,
-        logits_pred=logits_ppd,
-        func_=logscore_distance
+def excess_logscore_inner_inner(logits_gt, logits_pred):
+    """
+    Reverse mutual information, computed as Expected KL[ppd | pred]
+    """
+    ppd_logits_ = np.log(posterior_predictive(logits_=logits_gt))
+    ppd_logits = np.log(posterior_predictive(logits_=logits_pred))
+    return np.mean(
+        pairwise_kl(ppd_logits_, ppd_logits), axis=(0, 1)
     )
-    return res
 
 
 def bayes_logscore_outer(logits_gt, logits_pred=None):
@@ -903,7 +941,7 @@ if __name__ == '__main__':
     print(
         (
             'Testing that inner and outer approximations'
-            ' lead to the same Total outer'
+            'lead to the same Total outer'
         )
     )
     for score, b_i, b_o, e_io, e_oo in [
@@ -966,28 +1004,30 @@ if __name__ == '__main__':
             'to the differece of Bayes risks (Bregman Information)')
     )
 
-    for score, b_i, b_o, e_io, e_oo, e_oi, bi in [
+    for score, b_i, b_o, e_io, e_oo, e_oi, e_ii, bi in [
         ("Logscore", bayes_logscore_inner, bayes_logscore_outer,
          excess_logscore_inner_outer, excess_logscore_outer_outer,
-         excess_logscore_outer_inner, bi_logscore,),
+         excess_logscore_outer_inner, excess_logscore_inner_inner, bi_logscore),
         ("Brier", bayes_brier_inner, bayes_brier_outer,
          excess_brier_inner_outer, excess_brier_outer_outer,
-         excess_brier_outer_inner, bi_brier),
+         excess_brier_outer_inner, excess_brier_inner_inner, bi_brier),
         ("Spherical", bayes_spherical_inner, bayes_spherical_outer,
          excess_spherical_inner_outer, excess_spherical_outer_outer,
-         excess_spherical_outer_inner, bi_spherical),
+         excess_spherical_outer_inner, excess_spherical_inner_inner, bi_spherical),
         ("Neglog", bayes_neglog_inner, bayes_neglog_outer,
          excess_neglog_inner_outer, excess_neglog_outer_outer,
-         excess_neglog_outer_inner, bi_neglog),
+         excess_neglog_outer_inner, excess_neglog_inner_inner, bi_neglog),
         ("Maxprob", bayes_maxprob_inner, bayes_maxprob_outer,
          excess_maxprob_inner_outer, excess_maxprob_outer_outer,
-         excess_maxprob_outer_inner, bi_maxprob),
+         excess_maxprob_outer_inner, excess_maxprob_inner_inner, bi_maxprob),
     ]:
         try:
             excess_diff = e_oo(A, B) - e_io(A, B)
             bayes_diff = b_i(A, B) - b_o(A, B)
             excess_oi = e_oi(A, B)
             bregman = bi(A, B)
+            excess_ii = e_ii(A, B)
+            assert np.all(np.isclose(excess_ii, np.zeros_like(excess_ii)))
             assert np.all(np.isclose(excess_diff, bayes_diff))
             assert np.all(np.isclose(excess_diff, excess_oi))
             assert np.all(np.isclose(excess_diff, bregman))
@@ -1045,17 +1085,20 @@ if __name__ == '__main__':
         except Exception as ex:
             print(f"{score} FAILED {ex}")
             print(
-                f"For Total diff ok?: {np.all(np.isclose(excess_diff, total_diff))}")
+                f"For Total diff ok?: {np.all(np.isclose(excess_diff, total_diff))}"
+            )
             print(
-                f"For excess oi ok?: {np.all(np.isclose(excess_diff, excess_io))}")
+                f"For excess oi ok?: {np.all(np.isclose(excess_diff, excess_io))}"
+            )
             print(
-                f"For Reverse Bregman ok?: {np.all(np.isclose(excess_diff, reverse_bregman))}")
+                f"For Reverse Bregman ok?: {np.all(np.isclose(excess_diff, reverse_bregman))}"
+            )
             print(
-                f"For excess oo ok?: {np.all(np.isclose(excess_oo, e_oo(A, B)))}")
+                f"For excess oo ok?: {np.all(np.isclose(excess_oo, e_oo(A, B)))}"
+            )
             print(
-                f"For excess io decomp ok?: {np.all(np.isclose(decomposition_excess_io, excess_io))}")
-            print(
-                f"Maxdiff in decomposition is: {np.max(np.abs(decomposition_excess_io - excess_io))}")
+                f"For excess io decomp ok?: {np.all(np.isclose(decomposition_excess_io, excess_io))}"
+            )
 
     for func_ in [
         total_brier_outer,
