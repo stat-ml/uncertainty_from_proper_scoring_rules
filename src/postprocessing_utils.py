@@ -233,7 +233,7 @@ def get_uncertainty_scores(
         model_ids: np.ndarray,
         list_extraction_datasets: list[str],
         temperature: float = 1.0,
-        use_cheating_approximation: bool = False,
+        use_different_approximations: bool = False,
         gt_prob_approx: str = 'same',
         use_cached: bool = True,
 ) -> tuple[dict, dict, dict]:
@@ -284,7 +284,7 @@ def get_uncertainty_scores(
 
             for dataset_ in list_extraction_datasets:
                 ########
-                if use_cheating_approximation:
+                if use_different_approximations:
                     if dataset_ == training_dataset_name:
                         gt_prob_approx = 'same'
                     else:

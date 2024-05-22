@@ -1,10 +1,9 @@
 import sys
 sys.path.insert(1, 'external_repos/pytorch_cifar100/')
 sys.path.insert(1, 'external_repos/pytorch_cifar10/')
-import matplotlib
-from collections import namedtuple, defaultdict
-import pandas as pd
-import numpy as np
+import re
+import os
+from copy import deepcopy
 from postprocessing_utils import (
     get_metrics_results,
     uq_funcs_with_names,
@@ -16,10 +15,10 @@ from postprocessing_utils import (
     get_raw_scores_dataframe,
     ravel_df,
 )
-from copy import deepcopy
-import os
-import re
-
+import numpy as np
+import pandas as pd
+from collections import namedtuple, defaultdict
+import matplotlib
 
 
 def pretty_matplotlib_config(fontsize=15, fonttype=42):
@@ -238,7 +237,7 @@ def build_tables(
                 model_ids=model_ids,
                 list_extraction_datasets=list_extraction_datasets,
                 temperature=temperature,
-                use_cheating_approximation=False,
+                use_different_approximations=False,
                 use_cached=use_cached
             )
 
