@@ -19,7 +19,7 @@ datasets/
 notebooks/
 src/tests/test_risks.py
 src/tests/aux.py
-*.ipynb
+# *.ipynb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
