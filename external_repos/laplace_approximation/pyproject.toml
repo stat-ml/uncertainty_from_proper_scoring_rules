@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "laplace-approximation"
+version = "0.1.0"
+description = ""
+authors = ["vladimirKondratyevAqemia <vladimir.kondratyev@aqemia.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+laplace-torch = "^0.2.1"
+tqdm = "^4.66.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
