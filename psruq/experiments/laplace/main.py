@@ -4,19 +4,14 @@ import os
 
 import torch
 import tqdm
-from datasets import DatasetName, get_dataloaders
 from laplace import KronLLLaplace, LinkApprox, PredType
-from models import ModelName, get_model
 
-from losses import LossName, get_loss_function
+from psruq.datasets import DatasetName, get_dataloaders
+from psruq.losses import LossName, get_loss_function
+from psruq.models import ModelName, get_model
 
 LOGGER = logging.getLogger(__name__)
 PWD = os.path.dirname(os.path.realpath(__file__))
-
-import logging
-
-import tqdm
-
 
 def get_accuracy(ground_truth: torch.Tensor, probabilities: torch.Tensor) -> float:
     return float((ground_truth == probabilities.argmax(-1)).float().mean().detach())
