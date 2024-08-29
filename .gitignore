@@ -16,7 +16,6 @@ external_repos/FERPlus/
 data/
 imgs/
 tables/
-datasets/
 notebooks/
 src/tests/test_risks.py
 src/tests/aux.py
