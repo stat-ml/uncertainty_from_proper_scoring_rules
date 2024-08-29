@@ -1,27 +1,24 @@
 import sys
-
 sys.path.insert(1, 'external_repos/pytorch_cifar100/')
 sys.path.insert(1, 'external_repos/pytorch_cifar10/')
-import os
 import re
-from collections import defaultdict, namedtuple
+import os
 from copy import deepcopy
-
-import matplotlib
-import numpy as np
-import pandas as pd
-
 from postprocessing_utils import (
     get_metrics_results,
+    uq_funcs_with_names,
+    get_uncertainty_scores,
+    get_predicted_labels,
+    make_aggregation,
     get_missclassification_dataframe,
     get_ood_detection_dataframe,
-    get_predicted_labels,
     get_raw_scores_dataframe,
-    get_uncertainty_scores,
-    make_aggregation,
     ravel_df,
-    uq_funcs_with_names,
 )
+import numpy as np
+import pandas as pd
+from collections import namedtuple, defaultdict
+import matplotlib
 
 
 def pretty_matplotlib_config(fontsize=15, fonttype=42):

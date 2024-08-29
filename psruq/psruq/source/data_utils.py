@@ -1,18 +1,19 @@
 import sys
-
 sys.path.insert(0, './')
-import os
-import pickle
-from string import Template
-
-import torch
-import torch.nn as nn
-import torchvision
-from torchvision import transforms
-
 from external_repos.pytorch_cifar10.utils import get_model
-from external_repos.pytorch_cifar10.utils import get_transforms as get_cifar10_transforms
-from external_repos.pytorch_cifar100.utils import get_transforms as get_cifar100_transforms
+from string import Template
+import pickle
+from torchvision import transforms
+import torchvision
+import torch.nn as nn
+import torch
+import os
+from external_repos.pytorch_cifar100.utils import (
+    get_transforms as get_cifar100_transforms,
+)
+from external_repos.pytorch_cifar10.utils import (
+    get_transforms as get_cifar10_transforms,
+)
 
 
 def make_load_path(
