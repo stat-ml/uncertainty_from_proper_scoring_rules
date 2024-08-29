@@ -2,9 +2,6 @@ from enum import StrEnum
 
 
 class DatasetName(StrEnum):
-    CIFAR10 = 'cifar10'
-    NOISY_CIFAR10 = 'noisy_cifar10'
-    NOISY_CIFAR100 = 'noisy_cifar100'
-    MISSED_CLASS_CIFAR10 = 'missed_class_cifar10'
-    SVHN = 'svhn'
-    CIFAR100 ='cifar100'
+    CIFAR10_ONE_BATCH = "cifar10_one_batch"
+    CIFAR10 = "cifar10"
+    CIFAR100 = "cifar10"
