@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "psruq"
+version = "0.1.0"
+description = "Proper scoring rules uncertainty quantification ( prsuq )"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+license = "MIT"
+packages = [
+    { include = "psruq" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
