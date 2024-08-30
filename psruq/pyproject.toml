@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "psruq"
+name = "proper-scoring-rules-uncertainty-quantification"
 version = "0.1.0"
-description = "Proper scoring rules uncertainty quantification ( prsuq )"
+description = "Proper scoring rules uncertainty quantification"
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 license = "MIT"
 packages = [
-    { include = "psruq" },
+    { include = "source" },
 ]
 
 [tool.poetry.dependencies]

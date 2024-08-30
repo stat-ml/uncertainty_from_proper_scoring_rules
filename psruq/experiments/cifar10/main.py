@@ -1,14 +1,13 @@
 '''Train CIFAR10 with PyTorch.'''
-import sys
-sys.path.insert(0, '../../src')
-from losses import get_loss_function
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import os
 import argparse
-from utils import progress_bar, get_dataloaders, get_model
+import os
 
+import torch
+import torch.optim as optim
+from source.datasets import get_dataloaders
+from source.losses import get_loss_function
+from source.models import get_model
+from source.utils import progress_bar
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
@@ -57,23 +56,16 @@ print(f'Using {loss_name} for training...')
 # Model
 print('==> Building model..')
 
-net = get_model(architecture=architecture, n_classes=10)
+net = get_model(model_name=architecture, n_classes=10)
 
 print("Used device is ", device)
 net = net.to(device)
 
 if args.resume:
     raise ValueError("Resume is not supported!")
-    # Load checkpoint.
-    print('==> Resuming from checkpoint..')
-    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/ckpt.pth')
-    net.load_state_dict(checkpoint['net'])
-    best_acc = checkpoint['acc']
-    start_epoch = checkpoint['epoch']
 
-criterion = get_loss_function(loss_name=loss_name)
-optimizer = optim.SGD(net.parameters(), lr=args.lr,
+criterion = get_loss_function(loss_type=loss_name)
+optimizer = optim.sgd.SGD(net.parameters(), lr=args.lr,
                       momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 

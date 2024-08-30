@@ -5,16 +5,15 @@ import os
 import torch
 import tqdm
 from laplace import KronLLLaplace, LinkApprox, PredType
-
-from psruq.datasets import DatasetName, get_dataloaders
-from psruq.losses import LossName, get_loss_function
-from psruq.models import ModelName, get_model
+from source.datasets import DatasetName, get_dataloaders
+from source.losses import LossName, get_loss_function
+from source.models import ModelName, get_model
 
 LOGGER = logging.getLogger(__name__)
 PWD = os.path.dirname(os.path.realpath(__file__))
 
 def get_accuracy(ground_truth: torch.Tensor, probabilities: torch.Tensor) -> float:
-    return float((ground_truth == probabilities.argmax(-1)).float().mean().detach())
+    return float((ground_truth == probabilities.argmax(-1)).float().mean().cpu().detach())
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -35,7 +34,8 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('-v', '--verbose', action='store_true', help='Wether to show additional information or not.')
     parser.add_argument('-m', '--model_name', type=str, default='resnet18', help='Which model to use.')
     parser.add_argument('-o', '--output_path', type=str, default='results/experiment.pth', help='Which model to use.')
-
+    parser.add_argument('-c', '--cuda', type=int, default=-1, help='Which cuda device to use. If set to -1 cpu will be used. Default value is -1.')
+    
     return parser.parse_args()
 
 def validate_arguments(arguments: argparse.Namespace) -> argparse.Namespace:
@@ -76,6 +76,9 @@ def validate_arguments(arguments: argparse.Namespace) -> argparse.Namespace:
             f"{arguments.model_name} --  no such model type available. " + \
             f"Available options are: {[element.value for element in ModelName]}")
 
+    if arguments.cuda != -1:
+        torch.device("cuda", index=arguments.cuda)
+
     return arguments
 
 if __name__ == "__main__":
@@ -114,6 +117,12 @@ if __name__ == "__main__":
     loss_function = get_loss_function(loss_type=arguments.loss)
     LOGGER.info(f"Using {arguments.loss} as loss function.")
 
+    device = torch.device("cuda", index=arguments.cuda) \
+    if arguments.cuda != -1 else torch.device("cpu")
+    
+    model.to(device=device)
+    loss_function.to(device=device)
+
     laplace_model = KronLLLaplace(
         model=model,
         likelihood="classification"
@@ -143,15 +152,15 @@ if __name__ == "__main__":
                 link_approx=LinkApprox.MC,
                 n_samples=15,
             )
-            
+
             if type(distribution_prediction) is not torch.Tensor:
                 raise RuntimeError("Laplace model returns a tuple, but tensor is expected.")
 
-            loss_as_module = loss_function(distribution_prediction, y)
+            loss_value = loss_function(distribution_prediction, y)
             accuracy_value = get_accuracy(y, distribution_prediction)
 
             batch_size = X.shape[0]
-            metric_dict['test_loss'] += float(loss_as_module.detach()) * batch_size
+            metric_dict['test_loss'] += float(loss_value.cpu().detach()) * batch_size
             metric_dict['test_accuracy'] += accuracy_value * batch_size
             metric_dict['test_instances_count'] += batch_size
 
@@ -165,3 +174,5 @@ if __name__ == "__main__":
         LOGGER.info(f"\t{key}:\t{value}")
 
     LOGGER.info(f"Metric is saved to {arguments.output_path}")
+
+    torch.cuda.empty_cache()

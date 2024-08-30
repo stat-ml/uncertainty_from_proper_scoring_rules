@@ -1,9 +1,8 @@
-import sys
-sys.path.insert(0, '../')
-from losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss, targets2vector
 import numpy as np
-from torch.nn import CrossEntropyLoss
 import torch
+from source.losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss
+from source.utils import targets2vector
+from torch.nn import CrossEntropyLoss
 
 
 def test_targets2vector():
