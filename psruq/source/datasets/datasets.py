@@ -10,8 +10,7 @@ import torchvision
 LOGGER = logging.getLogger(__name__)
 
 def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
-    match dataset:
-        
+    match source.datasets.constants.DatasetName(dataset):
         case source.datasets.constants.DatasetName.CIFAR10_ONE_BATCH:
             return lambda *args, **kwargs: torch.utils.data.Subset(
                 dataset=torchvision.datasets.CIFAR10(*args, **kwargs),

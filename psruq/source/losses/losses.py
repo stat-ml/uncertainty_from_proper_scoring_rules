@@ -110,7 +110,8 @@ class BrierScoreLoss(nn.Module):
 
 
 def get_loss_function(loss_type: str) -> torch.nn.Module:
-    match loss_type:
+
+    match source.losses.constants.LossName(loss_type):
         case source.losses.constants.LossName.CROSS_ENTROPY:
             loss = nn.CrossEntropyLoss()
         case source.losses.constants.LossName.BRIER_SCORE:

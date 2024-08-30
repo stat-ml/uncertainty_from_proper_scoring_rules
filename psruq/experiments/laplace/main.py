@@ -146,6 +146,8 @@ if __name__ == "__main__":
             total=len(testloader),
             disable=(not arguments.verbose)
         ):
+            X = X.to(device)
+            y = y.to(device)
             distribution_prediction = laplace_model(
                 x=X,
                 pred_type=PredType.NN,

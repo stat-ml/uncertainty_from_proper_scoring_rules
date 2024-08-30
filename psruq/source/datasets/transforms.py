@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 
 
 def get_transforms(dataset: str):
-    match dataset:
+    match source.datasets.constants.DatasetName(dataset):
         case source.datasets.constants.DatasetName.CIFAR10_ONE_BATCH:
             return get_cifar10_transforms()
         case source.datasets.constants.DatasetName.CIFAR10:

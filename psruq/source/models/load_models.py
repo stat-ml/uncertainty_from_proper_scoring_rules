@@ -5,7 +5,7 @@ import torch.nn
 
 
 def get_model(model_name: str, n_classes: int = 10) -> torch.nn.Module:
-    match model_name:
+    match source.models.constants.ModelName(model_name):
         case source.models.constants.ModelName.RESNET18:
             return source.models.resnet.ResNet18(n_classes=n_classes)
         case source.models.constants.ModelName.VGG11:
