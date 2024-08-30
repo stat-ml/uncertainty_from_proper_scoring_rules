@@ -23,7 +23,7 @@ First install all the needed dependencies with [poetry](https://python-poetry.or
 ```bash
 poetry run python main.py -m resnet18 -f checkpoints/resnet18_ce.pth -d cifar10_one_batch -c 0 -o results.pth -v
 ```
-### Get Monte Carle Sample
+### Monte Carle Sample
 
 `laplace` classes have a special function to sample predictions from different models, sampled from normal prior distribution `_nn_predictive_samples`. Minimal example:
 ```python
