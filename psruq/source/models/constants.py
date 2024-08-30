@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class ModelName(StrEnum):
+class ModelName(Enum):
     RESNET18 = "resnet18"
     VGG11 = "vgg11"
     VGG13 = "vgg13"

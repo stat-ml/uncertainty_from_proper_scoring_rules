@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class LossName(StrEnum):
+class LossName(Enum):
     CROSS_ENTROPY = "CrossEntropy"
     BRIER_SCORE = "BrierScore"
     SPHERICAL_SCORE = "SphericalScore"

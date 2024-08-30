@@ -1,7 +1,7 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class DatasetName(StrEnum):
+class DatasetName(Enum):
     CIFAR10_ONE_BATCH = "cifar10_one_batch"
     CIFAR10 = "cifar10"
     CIFAR100 = "cifar100"
