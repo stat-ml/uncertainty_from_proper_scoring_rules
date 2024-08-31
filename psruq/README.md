@@ -3,7 +3,7 @@
 This repository contains code for the paper "Predictive Uncertainty Quantification via Risk Decompositions for Strictly Proper Scoring Rules," submitted to NeurIPS 2024.
 
 ### Poetry
-We use poetry to manage dependecies. You can find a full installation guide and their documentation [here](https://python-poetry.org/docs/#installing-with-the-official-installer).
+We use poetry to manage dependecies. You can find an installation guide and documentation [here](https://python-poetry.org/docs/#installing-with-the-official-installer).
 
 **Install poetry**
 
@@ -14,10 +14,17 @@ curl -sSL https://install.python-poetry.org | python3 -
 
 **Install dependencies**
 
-To install dependencies from pyproject.toml file run:
+**All the commands should be executed from the folder with pyproject.toml file**
+
+To install dependencies from pyproject.toml file you need to first create a poetry.lock file using
+```bash
+poetry lock
+```
+Then you can install necessary dependencies with
 ```bash
 poetry install
 ```
+It will create a .venv folder, that will contain a virtual environment and all the needed dependencies.
 
 **Run python script**
 
