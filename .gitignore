@@ -10,13 +10,15 @@ external_repos/pytorch_cifar10/checkpoints_missed_class_cifar10/
 external_repos/pytorch_cifar10/old_checkpoints_missed_class_cifar10
 external_repos/pytorch_cifar100/checkpoints_noisy_cifar100/
 
+psruq/experiments/laplace/checkpoints/
+psruq/experiments/laplace/results/
+psruq/experiments/laplace/data/
 external_repos/pytorch_cifar10/data/
 external_repos/FERPlus/
 data/
 imgs/
 tables/
-datasets/
-notebooks/
+./datasets/
 src/tests/test_risks.py
 src/tests/aux.py
 # *.ipynb
