@@ -1,14 +1,13 @@
-from vectorizer_uncertainty_scores import (
-    total_brier_outer,
-    total_logscore_outer,
-    total_neglog_outer,
-    total_maxprob_outer,
-    total_spherical_outer,
-    total_brier_inner,
-    total_logscore_inner,
-    total_neglog_inner,
-    total_maxprob_inner,
-    total_spherical_inner,
+import os
+import re
+from typing import Optional
+
+import numpy as np
+import pandas as pd
+from sklearn.metrics import roc_auc_score
+from source.source.data_utils import load_dict, make_load_path, save_dict
+from source.source.evaluation_utils import collect_embeddings, collect_stats
+from source.source.vectorizer_uncertainty_scores import (
     bayes_brier_inner,
     bayes_brier_outer,
     bayes_logscore_inner,
@@ -19,74 +18,70 @@ from vectorizer_uncertainty_scores import (
     bayes_neglog_outer,
     bayes_spherical_inner,
     bayes_spherical_outer,
-    excess_brier_inner_outer,
-    excess_brier_outer_outer,
-    excess_logscore_inner_outer,
-    excess_logscore_outer_outer,
-    excess_maxprob_inner_outer,
-    excess_maxprob_outer_outer,
-    excess_neglog_inner_outer,
-    excess_neglog_outer_outer,
-    excess_spherical_inner_outer,
-    excess_spherical_outer_outer,
-    excess_brier_outer_inner,
-    excess_logscore_outer_inner,
-    excess_maxprob_outer_inner,
-    excess_neglog_outer_inner,
-    excess_spherical_outer_inner,
-    excess_brier_inner_inner,
-    excess_logscore_inner_inner,
-    excess_maxprob_inner_inner,
-    excess_neglog_inner_inner,
-    excess_spherical_inner_inner,
     bi_brier,
     bi_logscore,
     bi_maxprob,
     bi_neglog,
     bi_spherical,
+    bias_bi_brier,
+    bias_bi_logscore,
+    bias_bi_maxprob,
+    bias_bi_neglog,
+    bias_bi_spherical,
+    bias_brier,
+    bias_logscore,
+    bias_maxprob,
+    bias_neglog,
+    bias_spherical,
+    excess_brier_inner_inner,
+    excess_brier_inner_outer,
+    excess_brier_outer_inner,
+    excess_brier_outer_outer,
+    excess_logscore_inner_inner,
+    excess_logscore_inner_outer,
+    excess_logscore_outer_inner,
+    excess_logscore_outer_outer,
+    excess_maxprob_inner_inner,
+    excess_maxprob_inner_outer,
+    excess_maxprob_outer_inner,
+    excess_maxprob_outer_outer,
+    excess_neglog_inner_inner,
+    excess_neglog_inner_outer,
+    excess_neglog_outer_inner,
+    excess_neglog_outer_outer,
+    excess_spherical_inner_inner,
+    excess_spherical_inner_outer,
+    excess_spherical_outer_inner,
+    excess_spherical_outer_outer,
+    mv_bi_brier,
+    mv_bi_logscore,
+    mv_bi_maxprob,
+    mv_bi_neglog,
+    mv_bi_spherical,
+    mv_brier,
+    mv_logscore,
+    mv_maxprob,
+    mv_neglog,
+    mv_spherical,
+    posterior_predictive,
     rbi_brier,
     rbi_logscore,
     rbi_maxprob,
     rbi_neglog,
     rbi_spherical,
-
-    bias_logscore,
-    mv_logscore,
-    mv_bi_logscore,
-    bias_bi_logscore,
-
-    bias_brier,
-    mv_brier,
-    mv_bi_brier,
-    bias_bi_brier,
-
-    bias_maxprob,
-    mv_maxprob,
-    mv_bi_maxprob,
-    bias_bi_maxprob,
-
-    bias_spherical,
-    mv_spherical,
-    mv_bi_spherical,
-    bias_bi_spherical,
-
-    bias_neglog,
-    mv_neglog,
-    mv_bi_neglog,
-    bias_bi_neglog,
-
-    posterior_predictive
+    total_brier_inner,
+    total_brier_outer,
+    total_logscore_inner,
+    total_logscore_outer,
+    total_maxprob_inner,
+    total_maxprob_outer,
+    total_neglog_inner,
+    total_neglog_outer,
+    total_spherical_inner,
+    total_spherical_outer,
 )
-from data_utils import make_load_path, load_dict, save_dict
-from evaluation_utils import collect_embeddings
-from src.evaluation_utils import collect_stats
-from sklearn.metrics import roc_auc_score
-from typing import Optional
 from tqdm.auto import tqdm
-import os
-import numpy as np
-import re
-import pandas as pd
+
 pd.set_option("mode.copy_on_write", True)
 pd.options.mode.copy_on_write = True
 

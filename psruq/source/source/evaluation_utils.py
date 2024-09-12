@@ -1,25 +1,23 @@
-import sys
-sys.path.insert(0, 'external_repos/pytorch_cifar100')
-sys.path.insert(0, 'external_repos/pytorch_cifar10')
-from collections import defaultdict
-from tqdm.auto import tqdm
 import json
-import torch
+import os
+from collections import defaultdict
+from typing import Dict
+
 import numpy as np
-from typing import Optional
+import torch
 from sklearn.metrics import classification_report
-from data_utils import (
+from source.source.data_utils import (
     load_dataloader_for_extraction,
-    make_load_path,
-    save_dict,
     load_dict,
     load_embeddings_dict,
-    load_model_checkpoint
+    load_model_checkpoint,
+    make_load_path,
+    save_dict,
 )
-import os
+from tqdm.auto import tqdm
 
 
-def get_additional_evaluation_metrics(embeddings_dict: dict) -> dict:
+def get_additional_evaluation_metrics(embeddings_dict: Dict) -> Dict | str:
     embeddings = embeddings_dict['embeddings']
     y_true = embeddings_dict['labels']
     y_pred = np.argmax(embeddings, axis=-1)
