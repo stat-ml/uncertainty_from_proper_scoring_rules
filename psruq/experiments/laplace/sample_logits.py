@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import pickle
 
 import torch
 import torch.utils.data
@@ -9,8 +8,6 @@ from laplace import KronLLLaplace
 from source.datasets import DatasetName, get_dataset_class_instance, get_transforms
 from source.losses import LossName
 from source.models import ModelName, get_model
-
-from uncertainty_scores import N_classes
 
 LOGGER = logging.getLogger(__name__)
 PWD = os.path.dirname(os.path.realpath(__file__))
@@ -36,6 +33,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('-d', '--in_distribution_dataset', type=str, default='cifar10', help='Which dataset to use.')
     parser.add_argument('-l', '--loss', type=str, default='CrossEntropy', help='Loss function type.')
     parser.add_argument('-m', '--model_name', type=str, default='resnet18', help='Which model to use.')
+    parser.add_argument('-u', '--number_of_classes', type=int, default=10, help='Number of classes to use for prediction.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Wether to show additional information or not.')
     parser.add_argument('-c', '--cuda', type=int, default=-1, help='Which cuda device to use. If set to -1 cpu will be used. Default value is -1.')
     parser.add_argument('-n', '--number_of_weight_samples', type=int, default=20, help='This parameter sets the amount of time the weights are going to be sample from model distribution.')
@@ -118,8 +116,12 @@ if __name__ == "__main__":
         weights_only=False
     )
 
-    model = get_model(model_name=arguments.model_name)
-    LOGGER.info(f"Model {model.__class__.__name__} loaded.")
+
+    model = get_model(
+        model_name=arguments.model_name,
+        n_classes=arguments.number_of_classes,
+    )
+    LOGGER.info(f"Model {model.__class__.__name__} with {arguments.number_of_classes} classes loaded.")
 
     if "net" in checkpoint:
         model.load_state_dict(checkpoint['net'])
@@ -182,8 +184,17 @@ if __name__ == "__main__":
     LOGGER.info("Fitting Hessian matrix on train data.")
     laplace_model.fit(train_loader=trainloader)
 
-    logits_tensor = torch.empty((0, N_classes, ), dtype=torch.float32, device='cpu')
-    labels = torch.empty((0, ), dtype=torch.float32, device='cpu')
+    logits_tensor = torch.empty(
+        size=(0, arguments.number_of_classes, arguments.number_of_weight_samples),
+        dtype=torch.float32,
+        device='cpu'
+    )
+    
+    labels = torch.empty(
+        size=(0, ),
+        dtype=torch.float32,
+        device='cpu'
+    )
 
     with torch.no_grad():
         for X, y in testloader:
@@ -224,10 +235,10 @@ if __name__ == "__main__":
 
     LOGGER.info(f"Saving logits and labels to {path_to_save_logits}/{pickled_dict_name}.pth")
     torch.save({
-        "logits (batch_size, n_classes, n_weight_samples)":logits_tensor,
-        "logits_shape_comment": "(batch_size, n_classes, n_weight_samples)",
-        "labels (batch_size, )":labels,
-        "labels_shape_comment": "(batch_size, )",
+        "logits":logits_tensor,
+        "logits_shape": "(batch_size, n_classes, n_weight_samples)",
+        "labels":labels,
+        "labels_shape": "(batch_size, )",
     }, f"{path_to_save_logits}/{pickled_dict_name}.pth")
 
     torch.cuda.empty_cache()

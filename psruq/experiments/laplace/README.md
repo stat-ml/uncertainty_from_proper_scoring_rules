@@ -53,3 +53,27 @@ for X, _ in testloader:
     ).shape)
 # It should give [128, 10, 15] - [batch_size, number_of_classes, number_of_monte_carlo_samples]
 ```
+
+We have also wrote a script to run logits samples, that will create a folder on path `logits_results/checkpoints_{in_distribution_dataset_name}/{model_name}/{arguments.loss}/` with logits and model weights.
+
+```
+usage: sample_logits.py [-h] [-f FILE_PATH] [-o OUT_OF_DISTRIBUTION_DATASET] [-d IN_DISTRIBUTION_DATASET] [-l LOSS] [-m MODEL_NAME] [-u NUMBER_OF_CLASSES] [-v] [-c CUDA] [-n NUMBER_OF_WEIGHT_SAMPLES]
+
+options:
+  -h, --help            show this help message and exit
+  -f FILE_PATH, --file_path FILE_PATH
+                        Path to the model weights. The script will look for the file, using location where the main file is located as root. (default: None)
+  -o OUT_OF_DISTRIBUTION_DATASET, --out_of_distribution_dataset OUT_OF_DISTRIBUTION_DATASET
+                        Which type of OOD data to use to evaluate logits. (default: None)
+  -d IN_DISTRIBUTION_DATASET, --in_distribution_dataset IN_DISTRIBUTION_DATASET
+                        Which dataset to use. (default: cifar10)
+  -l LOSS, --loss LOSS  Loss function type. (default: CrossEntropy)
+  -m MODEL_NAME, --model_name MODEL_NAME
+                        Which model to use. (default: resnet18)
+  -u NUMBER_OF_CLASSES, --number_of_classes NUMBER_OF_CLASSES
+                        Number of classes to use for prediction. (default: 10)
+  -v, --verbose         Wether to show additional information or not. (default: False)
+  -c CUDA, --cuda CUDA  Which cuda device to use. If set to -1 cpu will be used. Default value is -1. (default: -1)
+  -n NUMBER_OF_WEIGHT_SAMPLES, --number_of_weight_samples NUMBER_OF_WEIGHT_SAMPLES
+                        This parameter sets the amount of time the weights are going to be sample from model distribution. (default: 20)
+```
