@@ -13,6 +13,7 @@ external_repos/pytorch_cifar100/checkpoints_noisy_cifar100/
 psruq/experiments/laplace/checkpoints/
 psruq/experiments/laplace/results/
 psruq/experiments/laplace/data/
+psruq/experiments/laplace/logits_results/
 external_repos/pytorch_cifar10/data/
 external_repos/FERPlus/
 data/

@@ -61,6 +61,13 @@ def validate_arguments(arguments: argparse.Namespace) -> argparse.Namespace:
         raise RuntimeError("Out of distribution data set be given to command line argument via -o or --out_of_distribution_dataset argument.")
 
     try:
+        DatasetName(arguments.out_of_distribution_dataset)
+    except ValueError:
+        raise ValueError(
+            f"{arguments.out_of_distribution_dataset} --  no such dataset available. " + \
+            f"Available options are: {[element.value for element in DatasetName]}")
+    
+    try:
         DatasetName(arguments.in_distribution_dataset)
     except ValueError:
         raise ValueError(
@@ -189,7 +196,7 @@ if __name__ == "__main__":
         dtype=torch.float32,
         device='cpu'
     )
-    
+
     labels = torch.empty(
         size=(0, ),
         dtype=torch.float32,
@@ -204,7 +211,7 @@ if __name__ == "__main__":
                     laplace_model._nn_predictive_samples(
                         X=X,
                         n_samples=arguments.number_of_weight_samples
-                    ).detach().cpu()
+                    ).detach().cpu().transpose(0, 1).transpose(1, 2)
                 ], dim=0
             )
 
@@ -224,7 +231,7 @@ if __name__ == "__main__":
         f"{arguments.model_name}/"
         f"{arguments.loss}/"
     )
-    pickled_dict_name = f"embeddings_{arguments.out_of_distribution_dataset}.pkl"
+    pickled_dict_name = f"embeddings_{arguments.out_of_distribution_dataset}.pth"
 
     if not os.path.isdir(path_to_save_logits):
         LOGGER.info(f"Path {path_to_save_logits} does not exsists. Creating all the folders on path")
