@@ -29,11 +29,11 @@ def parse_arguments() -> argparse.Namespace:
     )
 
     parser.add_argument('-f', '--file_path', type=str, default=None, help='Path to the model weights. It will look, using location where the main file is located as root.')
-    parser.add_argument('-l', '--loss', type=str, default='CrossEntropy', help='Loss function type.')
-    parser.add_argument('-d', '--dataset', type=str, default='cifar10', help='Which dataset to use.')
+    parser.add_argument('-l', '--loss', type=str, default='CrossEntropy', help=f'Loss function type. Available options are: {[element.value for element in LossName]}')
+    parser.add_argument('-d', '--dataset', type=str, default='cifar10', help=f'Which dataset to use. Available options are: {[element.value for element in DatasetName]}')
     parser.add_argument('-v', '--verbose', action='store_true', help='Wether to show additional information or not.')
-    parser.add_argument('-m', '--model_name', type=str, default='resnet18', help='Which model to use.')
-    parser.add_argument('-o', '--output_path', type=str, default='results/experiment.pth', help='Which model to use.')
+    parser.add_argument('-m', '--model_name', type=str, default='resnet18', help=f'Which model to use. Available options are: {[element.value for element in ModelName]}')
+    parser.add_argument('-o', '--output_path', type=str, default='results/experiment.pth', help='Path to save results of the experiment.')
     parser.add_argument('-c', '--cuda', type=int, default=-1, help='Which cuda device to use. If set to -1 cpu will be used. Default value is -1.')
     
     return parser.parse_args()
