@@ -28,15 +28,15 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument('-f', '--file_path', type=str, default=None, help='Path to the model weights. The script will look for the file, using location where the main file is located as root.')
-    parser.add_argument('-o', '--out_of_distribution_dataset', type=str, default=None, help='Which type of OOD data to use to evaluate logits.')
-    parser.add_argument('-d', '--in_distribution_dataset', type=str, default='cifar10', help='Which dataset to use.')
-    parser.add_argument('-l', '--loss', type=str, default='CrossEntropy', help='Loss function type.')
-    parser.add_argument('-m', '--model_name', type=str, default='resnet18', help='Which model to use.')
+    parser.add_argument('-f', '--file_path', type=str, default=None, help='Path to the model weights. The script will look for the file, using location where the main file is located as root. e.g. chekpoint/model.pth will look for the file at PATH_TO_MAINPY/checkpoint/model.pth')
+    parser.add_argument('-o', '--out_of_distribution_dataset', type=str, default=None, help=f'Which type of OOD data to use to evaluate logits. Available options are: {[element.value for element in DatasetName]}')
+    parser.add_argument('-d', '--in_distribution_dataset', type=str, default='cifar10', help=f'Which type of dataset to use to evaluate laplace approximation. Available options are: {[element.value for element in DatasetName]}')
+    parser.add_argument('-l', '--loss', type=str, default='CrossEntropy', help=f'Loss function type. Available options are: {[element.value for element in LossName]}')
+    parser.add_argument('-m', '--model_name', type=str, default='resnet18', help=f'Which model to use. Available options are: {[element.value for element in ModelName]}')
     parser.add_argument('-u', '--number_of_classes', type=int, default=10, help='Number of classes to use for prediction.')
     parser.add_argument('-v', '--verbose', action='store_true', help='Wether to show additional information or not.')
     parser.add_argument('-c', '--cuda', type=int, default=-1, help='Which cuda device to use. If set to -1 cpu will be used. Default value is -1.')
-    parser.add_argument('-n', '--number_of_weight_samples', type=int, default=20, help='This parameter sets the amount of time the weights are going to be sample from model distribution.')
+    parser.add_argument('-n', '--number_of_weight_samples', type=int, default=20, help='This parameter sets the amount of times the weights are going to be sample from the model distribution.')
     
     return parser.parse_args()
 
