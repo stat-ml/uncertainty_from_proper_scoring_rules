@@ -1,5 +1,7 @@
 Experiments with Laplace Redux – Effortless Bayesian Deep Learning
 
+## Check model accuracy
+
 ```bash
 usage: main.py [-h] [-f FILE_PATH] [-l LOSS] [-d DATASET] [-v] [-m MODEL_NAME] [-o OUTPUT_PATH] [-c CUDA]
 
@@ -25,7 +27,7 @@ For the following example make sure that  you have saved model weights for model
 ```bash
 poetry run python main.py -m resnet18 -f checkpoints/resnet18_ce.pth -d cifar10_one_batch -c 0 -o results.pth -v
 ```
-### Monte Carle Sample
+## Monte Carle Sample
 
 `KronLLLaplace` have a special function `_nn_predictive_samples`. It can be used to sample predictions from different models, sampled from normal prior distribution. 
 
@@ -76,4 +78,14 @@ options:
   -c CUDA, --cuda CUDA  Which cuda device to use. If set to -1 cpu will be used. Default value is -1. (default: -1)
   -n NUMBER_OF_WEIGHT_SAMPLES, --number_of_weight_samples NUMBER_OF_WEIGHT_SAMPLES
                         This parameter sets the amount of time the weights are going to be sample from model distribution. (default: 20)
+```
+
+### How to run code
+
+First install all the needed dependencies with [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer). 
+
+For the following example make sure that  you have saved model weights for model `resnet18` in `checkpoints/resnet18_ce.pth` and that you have gpu availible on your machine. Then to test last layer diagonal laplace you can run:
+
+```bash
+poetry run python sample_logits.py -f checkpoints/resnet18_ce.pth -o cifar10_one_batch -d cifar10_one_batch -l CrossEntropy -m resnet18 -v
 ```
