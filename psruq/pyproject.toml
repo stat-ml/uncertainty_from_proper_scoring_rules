@@ -21,13 +21,13 @@ torchvision = "^0.19.0"
 scikit-learn = "^1.5.1"
 scipy = "^1.14.1"
 laplace-torch = { version = "^0.2.1", optional = true }
-ipykernel = "*"
-jupyter = "*"
-jupyterlab = "^4.2.5"
+ipykernel = { version = "*", optional = true }
+jupyter = { version = "*", optional = true }
+jupyterlab = { version = "^4.2.5", optional = true }
 
 [tool.poetry.extras]
 laplace = ['laplace-torch']
-notebook = ['ipykernel', "jupyter"]
+notebook = ['ipykernel', "jupyter", "jupyterlab"]
 
 [build-system]
 requires = ["poetry-core"]
