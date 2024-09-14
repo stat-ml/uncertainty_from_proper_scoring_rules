@@ -34,12 +34,20 @@ def get_uq_funcs_with_names() -> list[tuple[str, callable]]:
                         gt_approx=gt_approx,
                         pred_approx=pred_approx,
                     )
-                    uq_funcs_with_names.append(
-                        (
-                            f"{g_name.value} {risk_type.value} {gt_approx.value} {pred_approx.value}",
-                            specific_instance,
+                    if risk_type == RiskType.BAYES_RISK:
+                        uq_funcs_with_names.append(
+                            (
+                                f"{g_name.value} {risk_type.value} {gt_approx.value}",
+                                specific_instance,
+                            )
                         )
-                    )
+                    else:
+                        uq_funcs_with_names.append(
+                            (
+                                f"{g_name.value} {risk_type.value} {gt_approx.value} {pred_approx.value}",
+                                specific_instance,
+                            )
+                        )
     return uq_funcs_with_names
 
 
@@ -409,15 +417,19 @@ def get_uncertainty_scores(
                 temperature=temperature,
             )
 
-            uq_results[uq_name][loss_function_name] = {}
-            embeddings_per_dataset_all[loss_function_name] = embeddings_per_dataset
+            uq_results[uq_name][loss_function_name.value] = {}
+            embeddings_per_dataset_all[loss_function_name.value] = (
+                embeddings_per_dataset
+            )
 
             for dataset_ in list_extraction_datasets:
                 logits = embeddings_per_dataset[dataset_]
 
-                uq_results[uq_name][loss_function_name][dataset_] = uncertainty_func(
-                    logits=logits,
-                    T=temperature,
+                uq_results[uq_name][loss_function_name.value][dataset_] = (
+                    uncertainty_func(
+                        logits=logits,
+                        T=temperature,
+                    )
                 )
 
     res_dict = {
