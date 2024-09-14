@@ -12,10 +12,10 @@ from torchvision import transforms
 
 
 def make_load_path(
-        architecture: str,
-        loss_function_name: str,
-        dataset_name: str,
-        model_id: int,
+    architecture: str,
+    loss_function_name: str,
+    dataset_name: str,
+    model_id: int,
 ):
     """Create load path for specific model
 
@@ -29,37 +29,39 @@ def make_load_path(
         _type_: _description_
     """
     path_to_folder = Template(
-        (f'./external_repos/'
-         '$code_folder/'
-         '$checkpoint_folder/'
-         f'{architecture}/{loss_function_name}/{model_id}/')
+        (
+            f"../../external_repos/"
+            "$code_folder/"
+            "$checkpoint_folder/"
+            f"{architecture}/{loss_function_name}/{model_id}/"
+        )
     )
-    if dataset_name == 'cifar10':
-        code_folder = 'pytorch_cifar10'
-        checkpoint_folder = 'checkpoints'
+    if dataset_name == "cifar10":
+        code_folder = "pytorch_cifar10"
+        checkpoint_folder = "checkpoints"
 
-    elif dataset_name == 'noisy_cifar10':
-        code_folder = 'pytorch_cifar10'
-        checkpoint_folder = 'checkpoints_noisy_cifar10'
+    elif dataset_name == "noisy_cifar10":
+        code_folder = "pytorch_cifar10"
+        checkpoint_folder = "checkpoints_noisy_cifar10"
 
-    elif dataset_name == 'noisy_cifar100':
-        code_folder = 'pytorch_cifar100'
-        checkpoint_folder = 'checkpoints_noisy_cifar100'
+    elif dataset_name == "noisy_cifar100":
+        code_folder = "pytorch_cifar100"
+        checkpoint_folder = "checkpoints_noisy_cifar100"
 
-    elif dataset_name == 'missed_class_cifar10':
-        code_folder = 'pytorch_cifar10'
-        checkpoint_folder = 'checkpoints_missed_class_cifar10'
+    elif dataset_name == "missed_class_cifar10":
+        code_folder = "pytorch_cifar10"
+        checkpoint_folder = "checkpoints_missed_class_cifar10"
 
-    elif dataset_name == 'svhn':
-        code_folder = 'pytorch_cifar10'
-        checkpoint_folder = 'checkpoints_svhn'
+    elif dataset_name == "svhn":
+        code_folder = "pytorch_cifar10"
+        checkpoint_folder = "checkpoints_svhn"
 
-    elif dataset_name == 'cifar100':
-        code_folder = 'pytorch_cifar100'
-        checkpoint_folder = 'checkpoints'
+    elif dataset_name == "cifar100":
+        code_folder = "pytorch_cifar100"
+        checkpoint_folder = "checkpoints"
 
     else:
-        raise ValueError('No such dataset name supported.')
+        raise ValueError("No such dataset name supported.")
 
     return path_to_folder.substitute(
         code_folder=code_folder, checkpoint_folder=checkpoint_folder
@@ -67,8 +69,8 @@ def make_load_path(
 
 
 def load_dataloader_for_extraction(
-        training_dataset_name: str,
-        extraction_dataset_name: str,
+    training_dataset_name: str,
+    extraction_dataset_name: str,
 ) -> torch.utils.data.DataLoader:
     """The function returns dataloader for extracting embeddings.
     It takes into account proper transformations from training dataset,
@@ -82,84 +84,63 @@ def load_dataloader_for_extraction(
     Returns:
         torch.utils.data.DataLoader: correspinding test loader
     """
-    if training_dataset_name in [
-        'cifar10', 'noisy_cifar10', 'missed_class_cifar10'
-    ]:
+    if training_dataset_name in ["cifar10", "noisy_cifar10", "missed_class_cifar10"]:
         _, ind_transforms = get_cifar10_transforms()
-    elif training_dataset_name in ['cifar100', 'noisy_cifar100']:
+    elif training_dataset_name in ["cifar100", "noisy_cifar100"]:
         _, ind_transforms = get_cifar100_transforms()
     else:
         ValueError("No such dataset available")
 
-    if extraction_dataset_name in ['stl10', 'lsun']:
-        if training_dataset_name in ['cifar10', 'cifar100', 'svhn']:
+    if extraction_dataset_name in ["stl10", "lsun"]:
+        if training_dataset_name in ["cifar10", "cifar100", "svhn"]:
             ind_transforms = transforms.Compose(
-                [transforms.Resize((32, 32))] + ind_transforms.transforms)
+                [transforms.Resize((32, 32))] + ind_transforms.transforms
+            )
 
-    if extraction_dataset_name == 'cifar100':
+    if extraction_dataset_name == "cifar100":
         dataset = torchvision.datasets.CIFAR100(
-            root='./datasets',
-            train=False,
-            download=True,
-            transform=ind_transforms
+            root="./datasets", train=False, download=True, transform=ind_transforms
         )
-    elif extraction_dataset_name == 'blurred_cifar100':
+    elif extraction_dataset_name == "blurred_cifar100":
         ind_transforms = transforms.Compose(
-            [transforms.GaussianBlur(
-                kernel_size=(3, 3), sigma=(0.1, 2.0))
-             ] + ind_transforms.transforms)
+            [transforms.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0))]
+            + ind_transforms.transforms
+        )
         dataset = torchvision.datasets.CIFAR100(
-            root='./datasets',
-            train=False,
-            download=True,
-            transform=ind_transforms
+            root="./datasets", train=False, download=True, transform=ind_transforms
         )
 
-    elif extraction_dataset_name == 'stl10':
+    elif extraction_dataset_name == "stl10":
         dataset = torchvision.datasets.STL10(
-            root='./datasets',
-            split='test',
-            download=True,
-            transform=ind_transforms
+            root="./datasets", split="test", download=True, transform=ind_transforms
         )
 
     elif extraction_dataset_name in [
-        'cifar10', 'noisy_cifar10', 'missed_class_cifar10'
+        "cifar10",
+        "noisy_cifar10",
+        "missed_class_cifar10",
     ]:
         dataset = torchvision.datasets.CIFAR10(
-            root='./datasets',
-            train=False,
-            download=True,
-            transform=ind_transforms
+            root="./datasets", train=False, download=True, transform=ind_transforms
         )
 
-    elif extraction_dataset_name == 'blurred_cifar10':
+    elif extraction_dataset_name == "blurred_cifar10":
         ind_transforms = transforms.Compose(
-            [transforms.GaussianBlur(
-                kernel_size=(3, 3), sigma=(0.1, 2.0))
-             ] + ind_transforms.transforms)
+            [transforms.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0))]
+            + ind_transforms.transforms
+        )
         dataset = torchvision.datasets.CIFAR10(
-            root='./datasets',
-            train=False,
-            download=True,
-            transform=ind_transforms
+            root="./datasets", train=False, download=True, transform=ind_transforms
         )
 
-    elif extraction_dataset_name == 'svhn':
+    elif extraction_dataset_name == "svhn":
         dataset = torchvision.datasets.SVHN(
-            root='./datasets',
-            split='test',
-            download=True,
-            transform=ind_transforms
+            root="./datasets", split="test", download=True, transform=ind_transforms
         )
     else:
         ValueError("No such dataset available")
 
-    testloader = torch.utils.data.DataLoader(
-        dataset,
-        shuffle=False,
-        batch_size=100
-    )
+    testloader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=100)
     return testloader
 
 
@@ -170,7 +151,7 @@ def save_dict(save_path: str, dict_to_save: dict) -> None:
         save_path (str): _description_
         dict_to_save (dict): _description_
     """
-    with open(save_path, 'wb') as file:
+    with open(save_path, "wb") as file:
         pickle.dump(dict_to_save, file)
 
 
@@ -183,7 +164,7 @@ def load_dict(load_path: str) -> dict:
     Returns:
         dict: _description_
     """
-    with open(load_path, 'rb') as file:
+    with open(load_path, "rb") as file:
         loaded_dict = pickle.load(file)
     return loaded_dict
 
@@ -209,21 +190,19 @@ def load_embeddings_dict(
         architecture=architecture,
         dataset_name=dataset_name,
         model_id=model_id,
-        loss_function_name=loss_function_name
+        loss_function_name=loss_function_name,
     )
 
     # Loading the dictionary from the file
     loaded_dict = load_dict(
-        load_path=os.path.join(file_path, f'embeddings_{dataset_name}.pkl'))
+        load_path=os.path.join(file_path, f"embeddings_{dataset_name}.pkl")
+    )
 
     return loaded_dict
 
 
 def load_model_checkpoint(
-    architecture: str,
-        path: str,
-        n_classes: int,
-        device
+    architecture: str, path: str, n_classes: int, device
 ) -> nn.Module:
     """Load trained model checkpoint
 
@@ -238,5 +217,5 @@ def load_model_checkpoint(
     """
     checkpoint = torch.load(path, map_location=device)
     model = get_model(architecture=architecture, n_classes=n_classes)
-    model.load_state_dict(checkpoint['net'])
+    model.load_state_dict(checkpoint["net"])
     return model
