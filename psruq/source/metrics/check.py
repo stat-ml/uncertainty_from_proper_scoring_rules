@@ -1,7 +1,15 @@
+import sys
+
+sys.path.insert(0, "./psruq")
 import numpy as np
 from constants import ApproximationType, GName, RiskType
-from create_specific_risks import check_scalar_product, get_risk_approximation
-from utils import posterior_predictive, safe_softmax
+from create_specific_risks import (
+    check_scalar_product,
+    get_risk_approximation,
+    get_energy_inner,
+    get_energy_outer,
+)
+
 
 if __name__ == "__main__":
     N_members, N_objects, N_classes = 100, 5, 10  # Example dimensions
@@ -122,3 +130,14 @@ if __name__ == "__main__":
         assert np.all(
             np.isclose(scalar_product, 0.0)
         ), f"{g_name}: max abs scalar product is {np.max(np.abs(scalar_product))}"
+
+        if g_name == GName.LOG_SCORE.value:
+            energy_diff = get_energy_inner(logits=logits, T=T) - get_energy_outer(
+                logits=logits, T=T
+            )
+            assert np.all(
+                np.isclose(
+                    R_exc_3_1,
+                    energy_diff.ravel() / T,
+                )
+            ), f"{g_name}: Energy does not coincide!"

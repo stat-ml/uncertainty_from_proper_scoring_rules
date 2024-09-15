@@ -9,6 +9,19 @@ from source.metrics.getters import (
     get_specific_risk,
 )
 from source.metrics.utils import posterior_predictive, safe_softmax
+from scipy.special import logsumexp
+
+
+def energy(logits, T):
+    return -T * logsumexp(logits / T, axis=-1)
+
+
+def get_energy_inner(logits, T):
+    return energy(np.mean(logits, keepdims=True, axis=0), T=T).ravel()
+
+
+def get_energy_outer(logits, T):
+    return np.mean(energy(logits, T=T), axis=0, keepdims=True).ravel()
 
 
 def get_risk_approximation(
@@ -30,7 +43,7 @@ def get_risk_approximation(
     prob_pred = get_probability_approximation(
         g_name=g_name, approximation=pred_approx, logits=logits, T=T
     )
-    if risk_type is RiskType.BAYES_RISK:
+    if risk_type.value == RiskType.BAYES_RISK.value:
         result = np.mean(risk(prob_gt=prob_gt), axis=0)
     else:
         result = np.mean(risk(prob_gt=prob_gt, prob_pred=prob_pred), axis=(0, 1))
@@ -50,12 +63,12 @@ def check_scalar_product(
     bma_probs = posterior_predictive(logits, T=T)
     central_probs = get_central_prediction(g_name=g_name)(logits=logits, T=T)
 
-    if g_name is GName.ZERO_ONE_SCORE:
+    if g_name.value == GName.ZERO_ONE_SCORE.value:
         probabilities = probabilities[None]
         central_probs = central_probs[None]
     grad_pred = g_grad_func(probabilities)
     grad_central = g_grad_func(central_probs)
-    if g_name is GName.ZERO_ONE_SCORE:
+    if g_name.value == GName.ZERO_ONE_SCORE.value:
         probabilities = probabilities[0]
         central_probs = central_probs[0]
 

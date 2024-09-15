@@ -216,6 +216,6 @@ def load_model_checkpoint(
         nn.Module: _description_
     """
     checkpoint = torch.load(path, map_location=device)
-    model = get_model(architecture=architecture, n_classes=n_classes)
+    model = get_model(model_name=architecture, n_classes=n_classes)
     model.load_state_dict(checkpoint["net"])
     return model
