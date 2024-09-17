@@ -17,11 +17,11 @@ def energy(logits, T):
 
 
 def get_energy_inner(logits, T):
-    return energy(np.mean(logits, keepdims=True, axis=0), T=T).ravel()
+    return np.squeeze(energy(np.mean(logits, keepdims=True, axis=0), T=T))
 
 
 def get_energy_outer(logits, T):
-    return np.mean(energy(logits, T=T), axis=0, keepdims=True).ravel()
+    return np.squeeze(np.mean(energy(logits, T=T), axis=0, keepdims=True))
 
 
 def get_risk_approximation(
@@ -48,7 +48,7 @@ def get_risk_approximation(
     else:
         result = np.mean(risk(prob_gt=prob_gt, prob_pred=prob_pred), axis=(0, 1))
 
-    return result.ravel()
+    return np.squeeze(result)
 
 
 def check_scalar_product(

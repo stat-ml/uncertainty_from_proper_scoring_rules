@@ -138,6 +138,6 @@ if __name__ == "__main__":
             assert np.all(
                 np.isclose(
                     R_exc_3_1,
-                    energy_diff.ravel() / T,
+                    np.squeeze(energy_diff) / T,
                 )
             ), f"{g_name}: Energy does not coincide!"
