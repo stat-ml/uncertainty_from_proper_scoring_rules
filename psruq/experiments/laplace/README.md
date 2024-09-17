@@ -21,11 +21,11 @@ options:
 ```
 
 ### How to run code
-First install all the needed dependencies with [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer). 
+First install all the needed dependencies with [uv](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer). 
 
 For the following example make sure that  you have saved model weights for model `resnet18` in `checkpoints/resnet18_ce.pth` and that you have gpu availible on your machine. Then to test last layer diagonal laplace you can run:
 ```bash
-poetry run python main.py -m resnet18 -f checkpoints/resnet18_ce.pth -d cifar10_one_batch -c 0 -o results.pth -v
+uv run python main.py -m resnet18 -f checkpoints/resnet18_ce.pth -d cifar10_one_batch -c 0 -o results.pth -v
 ```
 ## Monte Carle Sample
 
@@ -82,10 +82,10 @@ options:
 
 ### How to run code
 
-First install all the needed dependencies with [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer). 
+First install all the needed dependencies with [uv](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer). 
 
 For the following example make sure that  you have saved model weights for model `resnet18` in `checkpoints/resnet18_ce.pth` and that you have gpu availible on your machine. Then to test last layer diagonal laplace you can run:
 
 ```bash
-poetry run python sample_logits.py -f checkpoints/resnet18_ce.pth -o cifar10_one_batch -d cifar10_one_batch -l CrossEntropy -m resnet18 -v
+uv run python sample_logits.py -f checkpoints/resnet18_ce.pth -o cifar10_one_batch -d cifar10_one_batch -l CrossEntropy -m resnet18 -v
 ```
