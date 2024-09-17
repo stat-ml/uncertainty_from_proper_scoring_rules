@@ -2,40 +2,36 @@
 
 This repository contains code for the paper "Predictive Uncertainty Quantification via Risk Decompositions for Strictly Proper Scoring Rules," submitted to NeurIPS 2024.
 
-### Poetry
-We use poetry to manage dependecies. You can find an installation guide and documentation [here](https://python-poetry.org/docs/#installing-with-the-official-installer).
+### UV
+We use uv to manage dependecies. You can find an installation guide and documentation [here](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer).
 
-**Install poetry**
+**Install uv**
 
-For Linux/MacOS the following line will install poetry on your system (assuming you have python3):
+For Linux/MacOS the following line will install uv on your system:
 ```bash
-curl -sSL https://install.python-poetry.org | python3 -
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 **Install dependencies**
 
 **All the commands should be executed from the folder with pyproject.toml file**
 
-To install dependencies from pyproject.toml file you need to first create a poetry.lock file using
+To install dependencies from pyproject.toml file using
 ```bash
-poetry lock
-```
-Then you can install necessary dependencies with
-```bash
-poetry install
+uv sync
 ```
 It will create a .venv folder, that will contain a virtual environment and all the needed dependencies.
 
 **Run python script**
 
-Poetry installs dependencies in special virutal env, that is located in .venv/. To run any python code snippet with it you should run:
+uv installs dependencies in special virutal env, that is located in .venv/. To run any python code snippet with it you should run:
 ```bash
-poetry run python ...
+uv run python ...
 ```
 e.g.
 ```bash
 cd experiments/laplace
-poetry run python main.py -f checkpoints/resnet18_ce.pth -d cifar10_one_batch -v
+uv run python main.py -f checkpoints/resnet18_ce.pth -d cifar10_one_batch -v
 ```
 
 ### Repository Structure
