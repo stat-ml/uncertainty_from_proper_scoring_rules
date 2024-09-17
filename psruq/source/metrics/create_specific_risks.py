@@ -12,15 +12,15 @@ from source.metrics.utils import posterior_predictive, safe_softmax
 from scipy.special import logsumexp
 
 
-def energy(logits, T):
+def energy(logits: np.ndarray, T: float) -> np.ndarray:
     return -T * logsumexp(logits / T, axis=-1)
 
 
-def get_energy_inner(logits, T):
+def get_energy_inner(logits: np.ndarray, T: float) -> np.ndarray:
     return np.squeeze(energy(np.mean(logits, keepdims=True, axis=0), T=T))
 
 
-def get_energy_outer(logits, T):
+def get_energy_outer(logits: np.ndarray, T: float) -> np.ndarray:
     return np.squeeze(np.mean(energy(logits, T=T), axis=0, keepdims=True))
 
 

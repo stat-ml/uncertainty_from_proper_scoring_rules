@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def total_risk(g, grad_g, prob_gt, prob_pred):
+def total_risk(
+    g: callable, grad_g: callable, prob_gt: np.ndarray, prob_pred: np.ndarray
+) -> np.ndarray:
     prob_gt = np.expand_dims(prob_gt, axis=1)
     prob_pred = np.expand_dims(prob_pred, axis=0)
     G_grad = grad_g(prob_pred)
@@ -10,7 +12,9 @@ def total_risk(g, grad_g, prob_gt, prob_pred):
     return R_tot
 
 
-def excess_risk(g, grad_g, prob_gt, prob_pred):
+def excess_risk(
+    g: callable, grad_g: callable, prob_gt: np.ndarray, prob_pred: np.ndarray
+) -> np.ndarray:
     prob_gt = np.expand_dims(prob_gt, axis=1)
     prob_pred = np.expand_dims(prob_pred, axis=0)
     G_grad = grad_g(prob_pred)
@@ -20,6 +24,6 @@ def excess_risk(g, grad_g, prob_gt, prob_pred):
     return R_exc
 
 
-def bayes_risk(g, prob_gt):
+def bayes_risk(g: callable, prob_gt: callable) -> np.ndarray:
     R_bayes = -g(prob_gt)
     return R_bayes

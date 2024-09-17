@@ -28,14 +28,6 @@ def make_load_path(
     Returns:
         _type_: _description_
     """
-    path_to_folder = Template(
-        (
-            f"../../external_repos/"
-            "$code_folder/"
-            "$checkpoint_folder/"
-            f"{architecture}/{loss_function_name}/{model_id}/"
-        )
-    )
     if dataset_name == "cifar10":
         code_folder = "pytorch_cifar10"
         checkpoint_folder = "checkpoints"
@@ -63,8 +55,10 @@ def make_load_path(
     else:
         raise ValueError("No such dataset name supported.")
 
-    return path_to_folder.substitute(
-        code_folder=code_folder, checkpoint_folder=checkpoint_folder
+    return (
+        f"../../external_repos/"
+        f"{code_folder}/{checkpoint_folder}/"
+        f"{architecture}/{loss_function_name}/{model_id}/"
     )
 
 

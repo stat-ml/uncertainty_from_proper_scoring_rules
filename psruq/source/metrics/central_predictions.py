@@ -34,8 +34,8 @@ def spherical_score_central_prediction(logits: np.ndarray, T: float = 1.0):
     x0 = np.ones(K).reshape(1, 1, K) / K
     x0_norm = np.linalg.norm(x0, ord=2, keepdims=True, axis=-1)
 
-    y_orth = x - np.sum(x * x0, axis=-1, keepdims=True) * (x0 / x0_norm**2)
-    y_orth_norm = np.linalg.norm(y_orth, ord=2, keepdims=True, axis=-1)
+    y_orthogonal = x - np.sum(x * x0, axis=-1, keepdims=True) * (x0 / x0_norm**2)
+    y_orthogonal_norm = np.linalg.norm(y_orthogonal, ord=2, keepdims=True, axis=-1)
 
-    central_pred = x0 + (y_orth / np.sqrt(1 - y_orth_norm**2)) * x0_norm
+    central_pred = x0 + (y_orthogonal / np.sqrt(1 - y_orthogonal_norm**2)) * x0_norm
     return central_pred
