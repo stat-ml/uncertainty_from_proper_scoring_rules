@@ -106,7 +106,6 @@ def get_probability_approximation(
     logits: np.ndarray,
     T: float = 1.0,
 ) -> np.ndarray:
-
     match approximation.value:
         case ApproximationType.OUTER.value:
             resulting_probs = safe_softmax(x=logits)

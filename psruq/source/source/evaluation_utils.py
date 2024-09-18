@@ -169,7 +169,6 @@ def collect_embeddings(
     targets_per_dataset = defaultdict(list)
     for extraction_dataset_name in list_extraction_datasets:
         for model_id in model_ids:
-
             path_to_model_folder = make_load_path(
                 architecture=architecture,
                 loss_function_name=loss_function_name,

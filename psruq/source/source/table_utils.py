@@ -1,4 +1,3 @@
-import os
 from collections import defaultdict, namedtuple
 
 import matplotlib
@@ -204,7 +203,6 @@ def build_tables(
     temperature: float,
     use_cached: bool,
 ):
-
     full_dataframe = None
     full_ood_rocauc_dataframe = None
     full_mis_rocauc_dataframe = None
@@ -221,7 +219,6 @@ def build_tables(
             architectures = ["resnet18"]
             training_dataset_name_aux = training_dataset_name.split("_")[-1]
         for architecture in architectures:
-
             uq_results, embeddings_per_dataset, targets_per_dataset = (
                 get_uncertainty_scores(
                     loss_function_names=loss_function_names,

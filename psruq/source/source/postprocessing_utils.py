@@ -257,7 +257,6 @@ def get_sampled_combinations_uncertainty_scores(
     temperature: float = 1.0,
     use_cached: bool = True,
 ) -> tuple[dict, dict, dict]:
-
     folder_path = make_load_path(
         architecture=architecture.value,
         dataset_name=training_dataset_name,
@@ -285,7 +284,6 @@ def get_sampled_combinations_uncertainty_scores(
     for uq_name, uncertainty_func in tqdm(UQ_FUNCS_WITH_NAMES):
         uq_results[uq_name] = {}
         for loss_function_name in loss_function_names:
-
             embeddings_per_dataset, targets_per_dataset = collect_embeddings(
                 model_ids=model_ids,
                 architecture=architecture.value,

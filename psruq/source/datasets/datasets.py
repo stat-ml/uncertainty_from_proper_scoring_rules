@@ -9,20 +9,21 @@ import torchvision
 
 LOGGER = logging.getLogger(__name__)
 
+
 def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
     match source.datasets.constants.DatasetName(dataset):
         case source.datasets.constants.DatasetName.CIFAR10_ONE_BATCH:
             return lambda *args, **kwargs: torch.utils.data.Subset(
                 dataset=torchvision.datasets.CIFAR10(*args, **kwargs),
-                indices=list(range(128))
+                indices=list(range(128)),
             )
-        
+
         case source.datasets.constants.DatasetName.CIFAR10:
             return torchvision.datasets.CIFAR10
-        
+
         case source.datasets.constants.DatasetName.CIFAR100:
             return torchvision.datasets.CIFAR100
-        
+
         case source.datasets.constants.DatasetName.CIFAR10_MISSED_LABEL:
             if missed_label is None:
                 error_message = (
@@ -30,40 +31,43 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
                     " missed label should be precised."
                 )
                 raise RuntimeError(error_message)
-            return lambda *args, **kwargs : CIFAR10MissedLabels(
+            return lambda *args, **kwargs: CIFAR10MissedLabels(
                 *args,
                 **kwargs,
                 missed_label=missed_label,
             )
-        
+
         case source.datasets.constants.DatasetName.CIFAR10_NOISY_LABEL:
             return CIFAR10NoisyLabels
-        
+
         case source.datasets.constants.DatasetName.SVHN:
             return lambda root, train, download, transform: torchvision.datasets.SVHN(
-                    split="train" if train else "test",
-                    root=root,
-                    download=download,
-                    transform=transform
-                )
-        
+                split="train" if train else "test",
+                root=root,
+                download=download,
+                transform=transform,
+            )
+
         case _:
             raise ValueError(
                 f"{dataset} --  no such dataset available. ",
-                f"Available options are: {[element.value for element in source.datasets.constants.DatasetName]}")
+                f"Available options are: {[element.value for element in source.datasets.constants.DatasetName]}",
+            )
 
 
 class CIFAR10MissedLabels(torch.utils.data.Dataset):
     def __init__(
-            self,
-            root,
-            missed_label: int,
-            train=True,
-            transform=None,
-            target_transform=None,
-            download=False,):
+        self,
+        root,
+        missed_label: int,
+        train=True,
+        transform=None,
+        target_transform=None,
+        download=False,
+    ):
         self.dataset = torchvision.datasets.CIFAR10(
-            root=root, train=train, download=download, transform=transform)
+            root=root, train=train, download=download, transform=transform
+        )
         self.target_transform = target_transform
         self.missed_label = missed_label
 
@@ -87,14 +91,11 @@ class CIFAR10MissedLabels(torch.utils.data.Dataset):
 
 class CIFAR10NoisyLabels(torch.utils.data.Dataset):
     def __init__(
-            self,
-            root,
-            train=True,
-            transform=None,
-            target_transform=None,
-            download=False):
+        self, root, train=True, transform=None, target_transform=None, download=False
+    ):
         self.dataset = torchvision.datasets.CIFAR10(
-            root=root, train=train, download=download, transform=transform)
+            root=root, train=train, download=download, transform=transform
+        )
         self.target_transform = target_transform
         # Pairs of labels to be swapped randomly
         self.label_pairs = {1: 7, 7: 1, 3: 8, 8: 3, 2: 5, 5: 2}

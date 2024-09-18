@@ -1,6 +1,6 @@
 """VGG11/13/16/19 in Pytorch."""
 
-from typing import Dict, List
+from typing import List
 
 import torch
 import torch.nn as nn

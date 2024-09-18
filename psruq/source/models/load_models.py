@@ -18,5 +18,6 @@ def get_model(model_name: str, n_classes: int = 10) -> torch.nn.Module:
             return source.models.vgg.VGG(vgg_name="VGG19", n_classes=n_classes)
         case _:
             raise ValueError(
-            f"{model_name} --  no such neural network is available. ",
-            f"Available options are: {[element.value for element in source.models.constants.ModelName]}")
+                f"{model_name} --  no such neural network is available. ",
+                f"Available options are: {[element.value for element in source.models.constants.ModelName]}",
+            )

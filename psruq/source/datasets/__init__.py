@@ -13,5 +13,5 @@ __all__ = [
     "get_dataset_class_instance",
     "get_transforms",
     "get_cifar100_transforms",
-    "get_cifar10_transforms"
+    "get_cifar10_transforms",
 ]

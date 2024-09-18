@@ -9,7 +9,9 @@ class SphericalScoreLoss(nn.Module):
     def __init__(self):
         super(SphericalScoreLoss, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(
+        self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True
+    ) -> torch.Tensor:
         """
         Calculate the Spherical Score Loss for multi-class classification
 
@@ -22,18 +24,19 @@ class SphericalScoreLoss(nn.Module):
         - Spherical Score loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = source.utils.targets2vector(targets=targets, n_classes=n_classes)
+        targets_vector = source.utils.targets2vector(
+            targets=targets, n_classes=n_classes
+        )
         if is_logit:
             predictions = F.softmax(inputs_, dim=-1)
         else:
             predictions = inputs_
 
-        normed_predictions = predictions / \
-            torch.linalg.norm(predictions, dim=-1, keepdim=True)
-
-        loss = torch.mean(
-            -torch.sum(normed_predictions * targets_vector, dim=-1)
+        normed_predictions = predictions / torch.linalg.norm(
+            predictions, dim=-1, keepdim=True
         )
+
+        loss = torch.mean(-torch.sum(normed_predictions * targets_vector, dim=-1))
         return loss
 
 
@@ -41,8 +44,9 @@ class NegLogScore(nn.Module):
     def __init__(self):
         super(NegLogScore, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor,
-                targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(
+        self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True
+    ) -> torch.Tensor:
         """
         Calculate the NegLogScore Loss for multi-class classification
 
@@ -55,7 +59,9 @@ class NegLogScore(nn.Module):
         - NegLogScore loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = source.utils.targets2vector(targets=targets, n_classes=n_classes)
+        targets_vector = source.utils.targets2vector(
+            targets=targets, n_classes=n_classes
+        )
 
         if is_logit:
             predictions = F.softmax(inputs_, dim=-1)
@@ -66,16 +72,11 @@ class NegLogScore(nn.Module):
         coeff = coeff * targets_vector
         print(coeff.max())
         print(coeff.min())
-        clipped_coeff = torch.clip(coeff, min=-1., max=1.)
+        clipped_coeff = torch.clip(coeff, min=-1.0, max=1.0)
         print(clipped_coeff.max())
         print(clipped_coeff.min())
 
-        loss = torch.mean(
-            torch.sum(
-                clipped_coeff * predictions,
-                dim=-1
-            )
-        )
+        loss = torch.mean(torch.sum(clipped_coeff * predictions, dim=-1))
         return loss
 
 
@@ -83,7 +84,9 @@ class BrierScoreLoss(nn.Module):
     def __init__(self):
         super(BrierScoreLoss, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(
+        self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True
+    ) -> torch.Tensor:
         """
         Calculate the BrierScoreLoss for multi-class classification
 
@@ -96,21 +99,20 @@ class BrierScoreLoss(nn.Module):
         - BrierScore loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = source.utils.targets2vector(targets=targets, n_classes=n_classes)
+        targets_vector = source.utils.targets2vector(
+            targets=targets, n_classes=n_classes
+        )
 
         if is_logit:
             predictions = F.softmax(inputs_, dim=-1)
         else:
             predictions = inputs_
 
-        loss = torch.mean(
-            torch.sum((predictions - targets_vector) ** 2, dim=-1)
-        )
+        loss = torch.mean(torch.sum((predictions - targets_vector) ** 2, dim=-1))
         return loss
 
 
 def get_loss_function(loss_type: str) -> torch.nn.Module:
-
     match source.losses.constants.LossName(loss_type):
         case source.losses.constants.LossName.CROSS_ENTROPY:
             loss = nn.CrossEntropyLoss()
@@ -122,6 +124,7 @@ def get_loss_function(loss_type: str) -> torch.nn.Module:
             loss = NegLogScore()
         case _:
             raise ValueError(
-            f"{loss_type} --  no such loss type available. ",
-            f"Available options are: {[element.value for element in source.losses.constants.LossName]}")
+                f"{loss_type} --  no such loss type available. ",
+                f"Available options are: {[element.value for element in source.losses.constants.LossName]}",
+            )
     return loss

@@ -1,6 +1,5 @@
 import os
 import pickle
-from string import Template
 
 import torch
 import torch.nn as nn
