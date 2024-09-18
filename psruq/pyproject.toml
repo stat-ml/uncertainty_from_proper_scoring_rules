@@ -1,5 +1,5 @@
 [project]
-name = "psruq"
+name = "psrqu"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -25,3 +25,10 @@ notebook = [
     "jupyter>=1.1.1",
     "jupyterlab>=4.2.5",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["source"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
