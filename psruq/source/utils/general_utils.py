@@ -9,7 +9,7 @@ BEGIN_TIME = LAST_TIME
 try:
     _, term_width = os.popen("stty size", "r").read().split()
     TERM_WIDTH = int(term_width)
-except:
+except (ValueError, TypeError, RuntimeError, OSError):
     TERM_WIDTH = 167
 
 

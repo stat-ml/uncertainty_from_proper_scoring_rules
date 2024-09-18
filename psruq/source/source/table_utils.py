@@ -8,6 +8,7 @@ from source.source.postprocessing_utils import (
     get_ood_detection_dataframe,
     get_predicted_labels,
     get_raw_scores_dataframe,
+    get_sampled_combinations_uncertainty_scores,
 )
 
 
@@ -220,7 +221,7 @@ def build_tables(
             training_dataset_name_aux = training_dataset_name.split("_")[-1]
         for architecture in architectures:
             uq_results, embeddings_per_dataset, targets_per_dataset = (
-                get_uncertainty_scores(
+                get_sampled_combinations_uncertainty_scores(
                     loss_function_names=loss_function_names,
                     training_dataset_name=training_dataset_name,
                     architecture=architecture,

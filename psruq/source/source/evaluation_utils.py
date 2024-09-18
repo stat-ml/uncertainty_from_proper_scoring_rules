@@ -61,7 +61,7 @@ def save_additional_stats(
                 obj=actual_acc,
                 indent=4,
             )
-    except:
+    except OSError:
         import pdb
 
         pdb.set_trace()
