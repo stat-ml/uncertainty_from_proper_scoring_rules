@@ -16,8 +16,8 @@ from source.metrics import (
 )
 from source.models.constants import ModelName
 from source.source.data_utils import load_dict, save_dict
-from source.source.path_config import make_load_path
 from source.source.evaluation_utils import collect_embeddings, collect_stats
+from source.source.path_config import make_load_path
 from tqdm.auto import tqdm
 
 ENSEMBLE_COMBINATIONS = [
@@ -266,7 +266,7 @@ def get_sampled_combinations_uncertainty_scores(
     )
 
     extracted_embeddings_file_path = os.path.join(
-        *folder_path.split("/")[:-3],
+        "/".join(folder_path.split("/")[:-3]),
         "CENTRAL_extracted_information_for_notebook_combinations.pkl",
     )
 
