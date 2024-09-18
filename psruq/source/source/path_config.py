@@ -1,9 +1,19 @@
 from pathlib import Path
 
 
-repo_root = Path(__file__).resolve().parent
-while not (repo_root / ".git").exists() and repo_root != repo_root.parent:
-    repo_root = repo_root.parent
+def find_repository_root(start_point_absolute_path: str) -> str:
+    repository_root = Path(start_point_absolute_path).resolve().parent
+    while not (repository_root / ".git").exists():
+        if repository_root == repository_root.parent:
+            raise RuntimeError(
+                "Root of file system is reached, probably there are no .git file on search tree"
+            )
+
+        repository_root = repository_root.parent
+    return repository_root.__str__()
+
+
+REPOSITORY_ROOT = find_repository_root(start_point_absolute_path=__file__)
 
 
 def make_load_path(
@@ -51,7 +61,7 @@ def make_load_path(
         raise ValueError("No such dataset name supported.")
 
     return (
-        f"{repo_root}/external_repos/"
+        f"{REPOSITORY_ROOT}/external_repos/"
         f"{code_folder}/{checkpoint_folder}/"
         f"{architecture}/{loss_function_name}/{model_id}/"
     )
