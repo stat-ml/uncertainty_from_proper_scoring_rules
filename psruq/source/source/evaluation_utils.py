@@ -13,9 +13,9 @@ from source.source.data_utils import (
     load_dict,
     load_embeddings_dict,
     load_model_checkpoint,
-    make_load_path,
     save_dict,
 )
+from source.source.path_config import make_load_path
 from tqdm.auto import tqdm
 
 

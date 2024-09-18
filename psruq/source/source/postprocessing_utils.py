@@ -15,7 +15,8 @@ from source.metrics import (
     posterior_predictive,
 )
 from source.models.constants import ModelName
-from source.source.data_utils import load_dict, make_load_path, save_dict
+from source.source.data_utils import load_dict, save_dict
+from source.source.path_config import make_load_path
 from source.source.evaluation_utils import collect_embeddings, collect_stats
 from tqdm.auto import tqdm
 
