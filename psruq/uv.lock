@@ -1496,9 +1496,9 @@ wheels = [
 ]
 
 [[package]]
-name = "psruq"
-version = "0.1.0"
-source = { virtual = "." }
+name = "psrqu"
+version = "0.0.1"
+source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },

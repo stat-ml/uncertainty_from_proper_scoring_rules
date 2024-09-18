@@ -8,12 +8,11 @@ from torch.nn import CrossEntropyLoss
 def test_targets2vector():
     target = torch.LongTensor([5])
     target_vector = targets2vector(target, n_classes=10)
-    assert torch.all(target_vector == torch.tensor(
-        [[0, 0, 0, 0, 0, 1, 0, 0, 0, 0]]))
+    assert torch.all(target_vector == torch.tensor([[0, 0, 0, 0, 0, 1, 0, 0, 0, 0]]))
 
 
 def test_targets2vector_dist():
-    prob_vector = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.])
+    prob_vector = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.0])
     target_vector = targets2vector(prob_vector, n_classes=5)
     assert torch.all(target_vector == prob_vector)
 
@@ -22,8 +21,12 @@ def test_target2vector_batch():
     target = torch.LongTensor([9, 2])
     target_vector = targets2vector(target, n_classes=10)
 
-    assert torch.all(target_vector == torch.tensor([[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                                                    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]))
+    assert torch.all(
+        target_vector
+        == torch.tensor(
+            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]]
+        )
+    )
 
 
 def test_ce_loss():
@@ -48,9 +51,7 @@ def test_ce_loss_batch():
 
     loss = CrossEntropyLoss()
     pred_loss = loss(predictions, target_vector)
-    true_value = -torch.mean(
-        torch.sum(target_vector * torch.log(pred_probs), dim=-1)
-    )
+    true_value = -torch.mean(torch.sum(target_vector * torch.log(pred_probs), dim=-1))
     assert torch.isclose(pred_loss, true_value)
 
 
@@ -77,9 +78,7 @@ def test_brier_loss_batch():
 
     loss = BrierScoreLoss()
     pred_loss = loss(predictions, target_vector)
-    true_value = torch.mean(
-        torch.sum(torch.pow(target_vector - pred_probs, 2), dim=-1)
-    )
+    true_value = torch.mean(torch.sum(torch.pow(target_vector - pred_probs, 2), dim=-1))
     assert torch.isclose(pred_loss, true_value)
 
 
@@ -97,8 +96,9 @@ def test_spherical_score_loss():
     normed_target = target_vector / torch.norm(target_vector, p=2, dim=-1)
 
     true_value = -torch.mean(
-        torch.norm(target_vector, p=2, dim=-1) * torch.sum(
-            normed_pred * normed_target, dim=-1))
+        torch.norm(target_vector, p=2, dim=-1)
+        * torch.sum(normed_pred * normed_target, dim=-1)
+    )
 
     assert torch.isclose(pred_loss, true_value)
 
@@ -113,14 +113,12 @@ def test_spherical_score_loss_batch():
     loss = SphericalScoreLoss()
     pred_loss = loss(predictions, target_vector)
 
-    normed_pred = pred_probs / torch.norm(pred_probs,
-                                          dim=-1, keepdim=True, p=2)
-    normed_target = target_vector / torch.norm(target_vector,
-                                               dim=-1, keepdim=True, p=2)
+    normed_pred = pred_probs / torch.norm(pred_probs, dim=-1, keepdim=True, p=2)
+    normed_target = target_vector / torch.norm(target_vector, dim=-1, keepdim=True, p=2)
 
     true_value = torch.mean(
-        -torch.norm(target_vector, dim=-1, p=2) * torch.sum(
-            normed_pred * normed_target, dim=-1)
+        -torch.norm(target_vector, dim=-1, p=2)
+        * torch.sum(normed_pred * normed_target, dim=-1)
     )
     assert torch.isclose(pred_loss, true_value)
 
@@ -135,8 +133,9 @@ def test_neglog_score_loss():
     loss = NegLogScore()
     pred_loss = loss(predictions, target_vector)
 
-    true_value = torch.sum(torch.log(pred_probs) - 1 +
-                           target_vector / pred_probs, dim=-1)
+    true_value = torch.sum(
+        torch.log(pred_probs) - 1 + target_vector / pred_probs, dim=-1
+    )
 
     assert torch.isclose(pred_loss, true_value)
 
@@ -152,7 +151,8 @@ def test_neglog_score_loss_batch():
     pred_loss = loss(predictions, target_vector)
 
     true_value = torch.mean(
-        torch.sum(torch.log(pred_probs) - 1 + target_vector / pred_probs, dim=-1))
+        torch.sum(torch.log(pred_probs) - 1 + target_vector / pred_probs, dim=-1)
+    )
     assert torch.isclose(pred_loss, true_value)
 
 

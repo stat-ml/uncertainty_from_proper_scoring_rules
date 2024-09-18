@@ -1,7 +1,7 @@
 [project]
-name = "psruq"
-version = "0.1.0"
-description = "Add your description here"
+name = "psrqu"
+version = "0.0.1"
+description = "Code for uncertainty quantification with proper scoring rules."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -25,3 +25,10 @@ notebook = [
     "jupyter>=1.1.1",
     "jupyterlab>=4.2.5",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["source"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

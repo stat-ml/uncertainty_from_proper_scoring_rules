@@ -19,7 +19,10 @@ external_repos/FERPlus/
 data/
 imgs/
 tables/
-./datasets/
+datasets/
+
+*.pth
+
 src/tests/test_risks.py
 src/tests/aux.py
 # *.ipynb

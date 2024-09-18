@@ -16,12 +16,14 @@ class SphericalScoreLoss(nn.Module):
     def __init__(self):
         super(SphericalScoreLoss, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(
+        self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True
+    ) -> torch.Tensor:
         """
         Calculate the Spherical Score Loss for multi-class classification
 
         Parameters:
-        - inputs_: Tensor of predicted inputs 
+        - inputs_: Tensor of predicted inputs
         - targets: Tensor of actual labels, not one-hot encoded
         - is_logit: Flag, true if logits provided
 
@@ -35,12 +37,11 @@ class SphericalScoreLoss(nn.Module):
         else:
             predictions = inputs_
 
-        normed_predictions = predictions / \
-            torch.linalg.norm(predictions, dim=-1, keepdim=True)
-
-        loss = torch.mean(
-            -torch.sum(normed_predictions * targets_vector, dim=-1)
+        normed_predictions = predictions / torch.linalg.norm(
+            predictions, dim=-1, keepdim=True
         )
+
+        loss = torch.mean(-torch.sum(normed_predictions * targets_vector, dim=-1))
         return loss
 
 
@@ -48,13 +49,14 @@ class NegLogScore(nn.Module):
     def __init__(self):
         super(NegLogScore, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor,
-                targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(
+        self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True
+    ) -> torch.Tensor:
         """
         Calculate the NegLogScore Loss for multi-class classification
 
         Parameters:
-        - inputs_: Tensor of predicted inputs 
+        - inputs_: Tensor of predicted inputs
         - targets: Tensor of actual labels, not one-hot encoded
         - is_logit: Flag, true if logits provided
 
@@ -73,16 +75,11 @@ class NegLogScore(nn.Module):
         coeff = coeff * targets_vector
         print(coeff.max())
         print(coeff.min())
-        clipped_coeff = torch.clip(coeff, min=-1., max=1.)
+        clipped_coeff = torch.clip(coeff, min=-1.0, max=1.0)
         print(clipped_coeff.max())
         print(clipped_coeff.min())
 
-        loss = torch.mean(
-            torch.sum(
-                clipped_coeff * predictions,
-                dim=-1
-            )
-        )
+        loss = torch.mean(torch.sum(clipped_coeff * predictions, dim=-1))
         return loss
 
 
@@ -90,12 +87,14 @@ class BrierScoreLoss(nn.Module):
     def __init__(self):
         super(BrierScoreLoss, self).__init__()
 
-    def forward(self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True) -> torch.Tensor:
+    def forward(
+        self, inputs_: torch.Tensor, targets: torch.Tensor, is_logit: bool = True
+    ) -> torch.Tensor:
         """
         Calculate the BrierScoreLoss for multi-class classification
 
         Parameters:
-        - inputs_: Tensor of predicted inputs 
+        - inputs_: Tensor of predicted inputs
         - targets: Tensor of actual labels, not one-hot encoded
         - is_logit: Flag, true if logits provided
 
@@ -110,21 +109,19 @@ class BrierScoreLoss(nn.Module):
         else:
             predictions = inputs_
 
-        loss = torch.mean(
-            torch.sum((predictions - targets_vector) ** 2, dim=-1)
-        )
+        loss = torch.mean(torch.sum((predictions - targets_vector) ** 2, dim=-1))
         return loss
 
 
 def get_loss_function(loss_name: str) -> torch.nn.Module:
     match loss_name:
-        case 'cross_entropy':
+        case "cross_entropy":
             loss = nn.CrossEntropyLoss()
-        case 'brier_score':
+        case "brier_score":
             loss = BrierScoreLoss()
-        case 'spherical_score':
+        case "spherical_score":
             loss = SphericalScoreLoss()
-        case 'neglog_score':
+        case "neglog_score":
             loss = NegLogScore()
         case _:
             print("No such loss")
