@@ -20,6 +20,7 @@ data/
 imgs/
 tables/
 datasets/
+!source/language/
 
 *.pth
 

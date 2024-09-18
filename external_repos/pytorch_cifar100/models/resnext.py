@@ -13,38 +13,46 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-#only implements ResNext bottleneck c
+# only implements ResNext bottleneck c
 
 
-#"""This strategy exposes a new dimension, which we call “cardinality”
-#(the size of the set of transformations), as an essential factor
-#in addition to the dimensions of depth and width."""
+# """This strategy exposes a new dimension, which we call “cardinality”
+# (the size of the set of transformations), as an essential factor
+# in addition to the dimensions of depth and width."""
 CARDINALITY = 32
 DEPTH = 4
 BASEWIDTH = 64
 
-#"""The grouped convolutional layer in Fig. 3(c) performs 32 groups
-#of convolutions whose input and output channels are 4-dimensional.
-#The grouped convolutional layer concatenates them as the outputs
-#of the layer."""
+# """The grouped convolutional layer in Fig. 3(c) performs 32 groups
+# of convolutions whose input and output channels are 4-dimensional.
+# The grouped convolutional layer concatenates them as the outputs
+# of the layer."""
+
 
 class ResNextBottleNeckC(nn.Module):
-
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
 
-        C = CARDINALITY #How many groups a feature map was splitted into
+        C = CARDINALITY  # How many groups a feature map was splitted into
 
-        #"""We note that the input/output width of the template is fixed as
-        #256-d (Fig. 3), We note that the input/output width of the template
-        #is fixed as 256-d (Fig. 3), and all widths are dou- bled each time
-        #when the feature map is subsampled (see Table 1)."""
-        D = int(DEPTH * out_channels / BASEWIDTH) #number of channels per group
+        # """We note that the input/output width of the template is fixed as
+        # 256-d (Fig. 3), We note that the input/output width of the template
+        # is fixed as 256-d (Fig. 3), and all widths are dou- bled each time
+        # when the feature map is subsampled (see Table 1)."""
+        D = int(DEPTH * out_channels / BASEWIDTH)  # number of channels per group
         self.split_transforms = nn.Sequential(
             nn.Conv2d(in_channels, C * D, kernel_size=1, groups=C, bias=False),
             nn.BatchNorm2d(C * D),
             nn.ReLU(inplace=True),
-            nn.Conv2d(C * D, C * D, kernel_size=3, stride=stride, groups=C, padding=1, bias=False),
+            nn.Conv2d(
+                C * D,
+                C * D,
+                kernel_size=3,
+                stride=stride,
+                groups=C,
+                padding=1,
+                bias=False,
+            ),
             nn.BatchNorm2d(C * D),
             nn.ReLU(inplace=True),
             nn.Conv2d(C * D, out_channels * 4, kernel_size=1, bias=False),
@@ -55,15 +63,21 @@ class ResNextBottleNeckC(nn.Module):
 
         if stride != 1 or in_channels != out_channels * 4:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * 4, stride=stride, kernel_size=1, bias=False),
-                nn.BatchNorm2d(out_channels * 4)
+                nn.Conv2d(
+                    in_channels,
+                    out_channels * 4,
+                    stride=stride,
+                    kernel_size=1,
+                    bias=False,
+                ),
+                nn.BatchNorm2d(out_channels * 4),
             )
 
     def forward(self, x):
         return F.relu(self.split_transforms(x) + self.shortcut(x))
 
-class ResNext(nn.Module):
 
+class ResNext(nn.Module):
     def __init__(self, block, num_blocks, class_names=100):
         super().__init__()
         self.in_channels = 64
@@ -71,7 +85,7 @@ class ResNext(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
         self.conv2 = self._make_layer(block, num_blocks[0], 64, 1)
@@ -111,20 +125,17 @@ class ResNext(nn.Module):
 
         return nn.Sequential(*layers)
 
+
 def resnext50():
-    """ return a resnext50(c32x4d) network
-    """
+    """return a resnext50(c32x4d) network"""
     return ResNext(ResNextBottleNeckC, [3, 4, 6, 3])
 
+
 def resnext101():
-    """ return a resnext101(c32x4d) network
-    """
+    """return a resnext101(c32x4d) network"""
     return ResNext(ResNextBottleNeckC, [3, 4, 23, 3])
 
+
 def resnext152():
-    """ return a resnext101(c32x4d) network
-    """
+    """return a resnext101(c32x4d) network"""
     return ResNext(ResNextBottleNeckC, [3, 4, 36, 3])
-
-
-

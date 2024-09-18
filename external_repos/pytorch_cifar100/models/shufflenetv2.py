@@ -22,6 +22,7 @@ def channel_split(x, split):
     assert x.size(1) == split * 2
     return torch.split(x, split, dim=1)
 
+
 def channel_shuffle(x, groups):
     """channel shuffle operation
     Args:
@@ -38,8 +39,8 @@ def channel_shuffle(x, groups):
 
     return x
 
-class ShuffleUnit(nn.Module):
 
+class ShuffleUnit(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
 
@@ -52,19 +53,33 @@ class ShuffleUnit(nn.Module):
                 nn.Conv2d(in_channels, in_channels, 1),
                 nn.BatchNorm2d(in_channels),
                 nn.ReLU(inplace=True),
-                nn.Conv2d(in_channels, in_channels, 3, stride=stride, padding=1, groups=in_channels),
+                nn.Conv2d(
+                    in_channels,
+                    in_channels,
+                    3,
+                    stride=stride,
+                    padding=1,
+                    groups=in_channels,
+                ),
                 nn.BatchNorm2d(in_channels),
                 nn.Conv2d(in_channels, int(out_channels / 2), 1),
                 nn.BatchNorm2d(int(out_channels / 2)),
-                nn.ReLU(inplace=True)
+                nn.ReLU(inplace=True),
             )
 
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, in_channels, 3, stride=stride, padding=1, groups=in_channels),
+                nn.Conv2d(
+                    in_channels,
+                    in_channels,
+                    3,
+                    stride=stride,
+                    padding=1,
+                    groups=in_channels,
+                ),
                 nn.BatchNorm2d(in_channels),
                 nn.Conv2d(in_channels, int(out_channels / 2), 1),
                 nn.BatchNorm2d(int(out_channels / 2)),
-                nn.ReLU(inplace=True)
+                nn.ReLU(inplace=True),
             )
         else:
             self.shortcut = nn.Sequential()
@@ -74,16 +89,21 @@ class ShuffleUnit(nn.Module):
                 nn.Conv2d(in_channels, in_channels, 1),
                 nn.BatchNorm2d(in_channels),
                 nn.ReLU(inplace=True),
-                nn.Conv2d(in_channels, in_channels, 3, stride=stride, padding=1, groups=in_channels),
+                nn.Conv2d(
+                    in_channels,
+                    in_channels,
+                    3,
+                    stride=stride,
+                    padding=1,
+                    groups=in_channels,
+                ),
                 nn.BatchNorm2d(in_channels),
                 nn.Conv2d(in_channels, in_channels, 1),
                 nn.BatchNorm2d(in_channels),
-                nn.ReLU(inplace=True)
+                nn.ReLU(inplace=True),
             )
 
-
     def forward(self, x):
-
         if self.stride == 1 and self.out_channels == self.in_channels:
             shortcut, residual = channel_split(x, int(self.in_channels / 2))
         else:
@@ -97,8 +117,8 @@ class ShuffleUnit(nn.Module):
 
         return x
 
-class ShuffleNetV2(nn.Module):
 
+class ShuffleNetV2(nn.Module):
     def __init__(self, ratio=1, class_num=100):
         super().__init__()
         if ratio == 0.5:
@@ -110,12 +130,9 @@ class ShuffleNetV2(nn.Module):
         elif ratio == 2:
             out_channels = [244, 488, 976, 2048]
         else:
-            ValueError('unsupported ratio number')
+            ValueError("unsupported ratio number")
 
-        self.pre = nn.Sequential(
-            nn.Conv2d(3, 24, 3, padding=1),
-            nn.BatchNorm2d(24)
-        )
+        self.pre = nn.Sequential(nn.Conv2d(3, 24, 3, padding=1), nn.BatchNorm2d(24))
 
         self.stage2 = self._make_stage(24, out_channels[0], 3)
         self.stage3 = self._make_stage(out_channels[0], out_channels[1], 7)
@@ -123,7 +140,7 @@ class ShuffleNetV2(nn.Module):
         self.conv5 = nn.Sequential(
             nn.Conv2d(out_channels[2], out_channels[3], 1),
             nn.BatchNorm2d(out_channels[3]),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
         self.fc = nn.Linear(out_channels[3], class_num)
@@ -150,10 +167,6 @@ class ShuffleNetV2(nn.Module):
 
         return nn.Sequential(*layers)
 
+
 def shufflenetv2():
     return ShuffleNetV2()
-
-
-
-
-

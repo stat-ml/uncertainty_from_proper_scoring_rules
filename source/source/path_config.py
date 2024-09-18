@@ -6,7 +6,7 @@ def find_repository_root(start_point_absolute_path: str) -> str:
     while not (repository_root / ".git").exists():
         if repository_root == repository_root.parent:
             raise RuntimeError(
-                "Root of file system is reached, probably there are no .git file on search tree"
+                "Root of file system is reached, probably there is no .git file on search tree"
             )
 
         repository_root = repository_root.parent

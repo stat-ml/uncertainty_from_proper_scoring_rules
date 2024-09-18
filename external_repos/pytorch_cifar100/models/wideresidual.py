@@ -3,29 +3,18 @@ import torch.nn as nn
 
 
 class WideBasic(nn.Module):
-
     def __init__(self, in_channels, out_channels, stride=1):
         super().__init__()
         self.residual = nn.Sequential(
             nn.BatchNorm2d(in_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(
-                in_channels,
-                out_channels,
-                kernel_size=3,
-                stride=stride,
-                padding=1
+                in_channels, out_channels, kernel_size=3, stride=stride, padding=1
             ),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Conv2d(
-                out_channels,
-                out_channels,
-                kernel_size=3,
-                stride=1,
-                padding=1
-            )
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
         )
 
         self.shortcut = nn.Sequential()
@@ -36,11 +25,11 @@ class WideBasic(nn.Module):
             )
 
     def forward(self, x):
-
         residual = self.residual(x)
         shortcut = self.shortcut(x)
 
         return residual + shortcut
+
 
 class WideResNet(nn.Module):
     def __init__(self, num_classes, block, depth=50, widen_factor=1):

@@ -14,7 +14,6 @@ import torch.nn.functional as F
 
 
 class LinearBottleNeck(nn.Module):
-
     def __init__(self, in_channels, out_channels, stride, t=6, class_num=100):
         super().__init__()
 
@@ -22,13 +21,18 @@ class LinearBottleNeck(nn.Module):
             nn.Conv2d(in_channels, in_channels * t, 1),
             nn.BatchNorm2d(in_channels * t),
             nn.ReLU6(inplace=True),
-
-            nn.Conv2d(in_channels * t, in_channels * t, 3, stride=stride, padding=1, groups=in_channels * t),
+            nn.Conv2d(
+                in_channels * t,
+                in_channels * t,
+                3,
+                stride=stride,
+                padding=1,
+                groups=in_channels * t,
+            ),
             nn.BatchNorm2d(in_channels * t),
             nn.ReLU6(inplace=True),
-
             nn.Conv2d(in_channels * t, out_channels, 1),
-            nn.BatchNorm2d(out_channels)
+            nn.BatchNorm2d(out_channels),
         )
 
         self.stride = stride
@@ -36,7 +40,6 @@ class LinearBottleNeck(nn.Module):
         self.out_channels = out_channels
 
     def forward(self, x):
-
         residual = self.residual(x)
 
         if self.stride == 1 and self.in_channels == self.out_channels:
@@ -44,15 +47,13 @@ class LinearBottleNeck(nn.Module):
 
         return residual
 
-class MobileNetV2(nn.Module):
 
+class MobileNetV2(nn.Module):
     def __init__(self, class_num=100):
         super().__init__()
 
         self.pre = nn.Sequential(
-            nn.Conv2d(3, 32, 1, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU6(inplace=True)
+            nn.Conv2d(3, 32, 1, padding=1), nn.BatchNorm2d(32), nn.ReLU6(inplace=True)
         )
 
         self.stage1 = LinearBottleNeck(32, 16, 1, 1)
@@ -64,9 +65,7 @@ class MobileNetV2(nn.Module):
         self.stage7 = LinearBottleNeck(160, 320, 1, 6)
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(320, 1280, 1),
-            nn.BatchNorm2d(1280),
-            nn.ReLU6(inplace=True)
+            nn.Conv2d(320, 1280, 1), nn.BatchNorm2d(1280), nn.ReLU6(inplace=True)
         )
 
         self.conv2 = nn.Conv2d(1280, class_num, 1)
@@ -88,7 +87,6 @@ class MobileNetV2(nn.Module):
         return x
 
     def _make_stage(self, repeat, in_channels, out_channels, stride, t):
-
         layers = []
         layers.append(LinearBottleNeck(in_channels, out_channels, stride, t))
 
@@ -97,6 +95,7 @@ class MobileNetV2(nn.Module):
             repeat -= 1
 
         return nn.Sequential(*layers)
+
 
 def mobilenetv2():
     return MobileNetV2()
