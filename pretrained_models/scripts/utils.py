@@ -29,9 +29,9 @@ def make_logits_path(
     version: int, training_dataset_name: str, extraction_dataset_name: str
 ):
     path_to_folder_with_logits = os.path.join(
-        ROOT_PATH, "logits", get_model_folder(dataset_name=training_dataset_name)
+        ROOT_PATH, "logits", training_dataset_name
     )
-    logits_dir = os.path.join(path_to_folder_with_logits, version)
+    logits_dir = os.path.join(path_to_folder_with_logits, str(version))
     os.makedirs(logits_dir, exist_ok=True)
     logits_path = os.path.join(logits_dir, f"{extraction_dataset_name}.pkl")
     return logits_path

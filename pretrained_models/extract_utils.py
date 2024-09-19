@@ -12,40 +12,36 @@ import numpy as np
 import json
 
 
-def save_additional_stats(
-    dataset_name: str,
-    model_id: int,
-):
-    load_path = make_model_load_path(
-        version=model_id,
-        training_dataset=dataset_name,
-    )
+# def save_additional_stats(
+#     dataset_name: str,
+#     model_id: int,
+# ):
+#     load_path = make_model_load_path(
+#         version=model_id,
+#         training_dataset=dataset_name,
+#     )
 
-    logits_path = make_logits_path(
-        version=model_id,
-        training_dataset_name=dataset_name,
-        extraction_dataset_name=training_dataset_name,
-    )
+#     logits_path = make_logits_path(
+#         version=model_id,
+#         training_dataset_name=dataset_name,
+#         extraction_dataset_name=training_dataset_name,
+#     )
 
-    checkpoint_path = os.path.join(load_path, "ckpt.pth")
-    last_acc = torch.load(checkpoint_path, map_location="cpu")["acc"]
-    if isinstance(last_acc, torch.Tensor):
-        last_acc = last_acc.cpu().detach().numpy()
-    actual_acc = get_additional_evaluation_metrics(embeddings_dict=logits_path)
-    actual_acc.update({"last_acc": last_acc / 100})
+#     actual_acc = get_additional_evaluation_metrics(embeddings_dict=logits_path)
+#     actual_acc.update({"last_acc": last_acc / 100})
 
-    try:
-        with open(os.path.join(logits_path, "results_dict.json"), "w") as file:
-            json.dump(
-                fp=file,
-                obj=actual_acc,
-                indent=4,
-            )
-    except OSError:
-        import pdb
+#     try:
+#         with open(os.path.join(logits_path, "results_dict.json"), "w") as file:
+#             json.dump(
+#                 fp=file,
+#                 obj=actual_acc,
+#                 indent=4,
+#             )
+#     except OSError:
+#         import pdb
 
-        pdb.set_trace()
-        print("oh")
+#         pdb.set_trace()
+#         print("oh")
 
 
 def extract_embeddings(
@@ -99,7 +95,7 @@ def extract_embeddings(
 
 if __name__ == "__main__":
     training_datasets = ["cifar10", "cifar100", "tiny_imagenet"]
-    model_ids = np.arange(20)
+    model_ids = np.arange(2)
 
     # iterate over training datasets
     for training_dataset_name in training_datasets:
@@ -137,12 +133,12 @@ if __name__ == "__main__":
                 )
                 print("Finished embeddings extraction!")
 
-                if extraction_dataset_name == training_dataset_name:
-                    print("Saving additional evaluation params...")
-                    save_additional_stats(
-                        dataset_name=training_dataset_name,
-                        model_id=model_id,
-                    )
+                # if extraction_dataset_name == training_dataset_name:
+                #     print("Saving additional evaluation params...")
+                #     save_additional_stats(
+                #         dataset_name=training_dataset_name,
+                #         model_id=model_id,
+                #     )
 
         # stats_dict = collect_stats(
         #     architecture=architecture,
