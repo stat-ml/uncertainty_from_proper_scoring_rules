@@ -1,16 +1,13 @@
 import os
-from pathlib import Path
-
 from safetensors.torch import load_file
-
 from scripts.resnet import resnet
+from scripts.utils import ROOT_PATH
 
 
 def cust_load_model(
-    version: int,
     arch: int,
     num_classes: int,
-    path_to_folder_with_models: str,
+    path: str,
     style: str,
     conv_bias: bool,
 ):
@@ -22,7 +19,6 @@ def cust_load_model(
         style=style,
         conv_bias=conv_bias,
     )
-    path = os.path.join(path_to_folder_with_models, f"version_{version}.safetensors")
 
     if not os.path.exists(path):
         raise ValueError("File does not exist")
