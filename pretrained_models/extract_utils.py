@@ -12,6 +12,7 @@ from pretrained_models.source.utils import (
     make_logits_path,
     make_model_load_path,
 )
+from source.datasets.constants import DatasetName
 from source.source.evaluation_utils import (
     get_additional_evaluation_metrics,
     load_dataloader_for_extraction,
@@ -56,6 +57,7 @@ def extract_embeddings(
     extraction_dataset_name: str,
     num_classes: int,
     model_id: int,
+    severity: int | None = None,
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -76,6 +78,7 @@ def extract_embeddings(
     loader = load_dataloader_for_extraction(
         training_dataset_name=training_dataset_name,
         extraction_dataset_name=extraction_dataset_name,
+        severity=severity,
     )
 
     output_embeddings = {}
@@ -96,31 +99,41 @@ def extract_embeddings(
         extraction_dataset_name=extraction_dataset_name,
         training_dataset_name=training_dataset_name,
         version=model_id,
+        severity=severity,
     )
     save_dict(save_path=save_path, dict_to_save=output_embeddings)
 
 
 if __name__ == "__main__":
-    # training_datasets = ["cifar10", "cifar100", "tiny_imagenet"]
-    training_datasets = ["cifar100"]
+    training_datasets = [
+        # DatasetName.CIFAR10.value,
+        DatasetName.CIFAR100.value,
+    ]
     model_ids = np.arange(1)
 
     # iterate over training datasets
     for training_dataset_name in training_datasets:
-        if training_dataset_name in ["cifar100", "noisy_cifar100"]:
+        if training_dataset_name in [
+            DatasetName.CIFAR100.value,
+            DatasetName.CIFAR100_NOISY_LABEL.value,
+        ]:
             n_classes = 100
-        elif training_dataset_name in ["tiny_imagenet"]:
+        elif training_dataset_name in [
+            DatasetName.TINY_IMAGENET.value,
+        ]:
             n_classes = 200
         else:
             n_classes = 10
 
         for extraction_dataset_name in [
-            "cifar10",
-            "cifar100",
-            "svhn",
-            "blurred_cifar100",
-            "blurred_cifar10",
-            "tiny_imagenet",
+            # DatasetName.CIFAR10.value,
+            # DatasetName.CIFAR100.value,
+            # DatasetName.SVHN.value,
+            # DatasetName.CIFAR10_BLURRED.value,
+            # DatasetName.CIFAR100_BLURRED.value,
+            # DatasetName.TINY_IMAGENET.value,
+            # DatasetName.CIFAR10C.value,
+            DatasetName.CIFAR100C.value,
         ]:
             # different loss functions
             for model_id in model_ids:
@@ -134,12 +147,26 @@ if __name__ == "__main__":
                     )
                 )
                 print("Extracting embeddings....")
-                extract_embeddings(
-                    training_dataset_name=training_dataset_name,
-                    extraction_dataset_name=extraction_dataset_name,
-                    num_classes=n_classes,
-                    model_id=model_id,
-                )
+                if extraction_dataset_name in [
+                    DatasetName.CIFAR100C.value,
+                    DatasetName.CIFAR10C.value,
+                ]:
+                    for severity in range(1, 6):
+                        extract_embeddings(
+                            training_dataset_name=training_dataset_name,
+                            extraction_dataset_name=extraction_dataset_name,
+                            num_classes=n_classes,
+                            model_id=model_id,
+                            severity=severity,
+                        )
+                else:
+                    extract_embeddings(
+                        training_dataset_name=training_dataset_name,
+                        extraction_dataset_name=extraction_dataset_name,
+                        num_classes=n_classes,
+                        model_id=model_id,
+                        severity=None,
+                    )
                 print("Finished embeddings extraction!")
 
                 if extraction_dataset_name == training_dataset_name:

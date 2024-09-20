@@ -24,6 +24,7 @@ BLURRED_DATASETS = [
 def load_dataloader_for_extraction(
     training_dataset_name: str,
     extraction_dataset_name: str,
+    severity: int | None = None,
 ):
     _, joint_transforms = get_transforms(training_dataset_name)
 
@@ -50,6 +51,7 @@ def load_dataloader_for_extraction(
         dataset=extraction_dataset_name,
         transform_train=joint_transforms,
         transform_test=joint_transforms,
+        severity=severity,
     )
 
     return testloader

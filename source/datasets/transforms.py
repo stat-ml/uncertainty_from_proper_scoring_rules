@@ -11,6 +11,10 @@ def get_transforms(dataset: str):
             return get_cifar10_transforms()
         case source.datasets.constants.DatasetName.CIFAR100:
             return get_cifar100_transforms()
+        case source.datasets.constants.DatasetName.CIFAR10C:
+            return get_cifar10_transforms()
+        case source.datasets.constants.DatasetName.CIFAR100C:
+            return get_cifar100_transforms()
         case source.datasets.constants.DatasetName.CIFAR10_NOISY_LABEL:
             return get_cifar10_transforms()
         case source.datasets.constants.DatasetName.CIFAR10_MISSED_LABEL:

@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 
 def get_model_folder(dataset_name: str):
@@ -26,14 +26,22 @@ def make_model_load_path(
 
 
 def make_logits_path(
-    version: int, training_dataset_name: str, extraction_dataset_name: str
+    version: int,
+    training_dataset_name: str,
+    extraction_dataset_name: str,
+    severity: int | None = None,
 ):
     path_to_folder_with_logits = os.path.join(
         ROOT_PATH, "logits", training_dataset_name
     )
     logits_dir = os.path.join(path_to_folder_with_logits, str(version))
     os.makedirs(logits_dir, exist_ok=True)
-    logits_path = os.path.join(logits_dir, f"{extraction_dataset_name}.pkl")
+    if severity is None:
+        logits_path = os.path.join(logits_dir, f"{extraction_dataset_name}.pkl")
+    else:
+        logits_path = os.path.join(
+            logits_dir, f"{extraction_dataset_name}_{str(severity)}.pkl"
+        )
     return logits_path
 
 

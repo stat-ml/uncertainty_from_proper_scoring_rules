@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 
 import numpy as np
@@ -8,11 +9,14 @@ import torchvision
 
 import source.datasets.constants
 import source.datasets.transforms
+from source.source.path_config import REPOSITORY_ROOT
 
 LOGGER = logging.getLogger(__name__)
 
 
-def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
+def get_dataset_class_instance(
+    dataset: str, missed_label: int | None = None, severity: int | None = None
+):
     match source.datasets.constants.DatasetName(dataset):
         case source.datasets.constants.DatasetName.CIFAR10_ONE_BATCH:
             return lambda *args, **kwargs: torch.utils.data.Subset(
@@ -23,11 +27,29 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
         case source.datasets.constants.DatasetName.CIFAR10:
             return torchvision.datasets.CIFAR10
 
+        case source.datasets.constants.DatasetName.CIFAR10C:
+            return lambda root, train, download, transform: torch_uncertainty_datasets.CIFAR10C(
+                root=os.path.join(REPOSITORY_ROOT, "datasets"),
+                subset="all",
+                transform=transform,
+                severity=severity,
+                download=True,
+            )
+
         case source.datasets.constants.DatasetName.CIFAR10_BLURRED:
             return torchvision.datasets.CIFAR10
 
         case source.datasets.constants.DatasetName.CIFAR100:
             return torchvision.datasets.CIFAR100
+
+        case source.datasets.constants.DatasetName.CIFAR100C:
+            return lambda root, train, download, transform: torch_uncertainty_datasets.CIFAR100C(
+                root=os.path.join(REPOSITORY_ROOT, "datasets"),
+                subset="all",
+                transform=transform,
+                severity=severity,
+                download=False,
+            )
 
         case source.datasets.constants.DatasetName.CIFAR100_BLURRED:
             return torchvision.datasets.CIFAR100
