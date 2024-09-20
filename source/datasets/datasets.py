@@ -2,10 +2,12 @@ import logging
 import random
 
 import numpy as np
+import torch.utils.data
+import torch_uncertainty.datasets.classification as torch_uncertainty_datasets
+import torchvision
+
 import source.datasets.constants
 import source.datasets.transforms
-import torch.utils.data
-import torchvision
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +23,13 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
         case source.datasets.constants.DatasetName.CIFAR10:
             return torchvision.datasets.CIFAR10
 
+        case source.datasets.constants.DatasetName.CIFAR10_BLURRED:
+            return torchvision.datasets.CIFAR10
+
         case source.datasets.constants.DatasetName.CIFAR100:
+            return torchvision.datasets.CIFAR100
+
+        case source.datasets.constants.DatasetName.CIFAR100_BLURRED:
             return torchvision.datasets.CIFAR100
 
         case source.datasets.constants.DatasetName.CIFAR10_MISSED_LABEL:
@@ -45,6 +53,13 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
                 split="train" if train else "test",
                 root=root,
                 download=download,
+                transform=transform,
+            )
+
+        case source.datasets.constants.DatasetName.TINY_IMAGENET:
+            return lambda root, train, download, transform: torch_uncertainty_datasets.TinyImageNet(
+                root=root,
+                split="train" if train else "val",
                 transform=transform,
             )
 

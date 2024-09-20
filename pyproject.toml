@@ -7,11 +7,13 @@ requires-python = ">=3.11"
 dependencies = [
     "matplotlib>=3.9.2",
     "numpy>=2.1.1",
+    "opencv-python>=4.10.0.84",
     "pandas>=2.2.2",
     "safetensors>=0.4.5",
     "scikit-learn>=1.5.2",
     "scipy>=1.14.1",
     "seaborn>=0.13.2",
+    "torch-uncertainty==0.2.0",
     "torch>=2.4.1",
     "torchvision>=0.19.1",
     "tqdm>=4.66.5",

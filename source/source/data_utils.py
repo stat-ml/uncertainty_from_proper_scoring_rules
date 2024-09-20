@@ -4,86 +4,54 @@ import pickle
 import torch
 import torch.nn as nn
 import torch.utils.data
-import torchvision
-from source.datasets.transforms import get_cifar10_transforms, get_cifar100_transforms
+from torchvision import transforms
+
+from source.datasets.constants import DatasetName
+from source.datasets.loaders import get_dataloaders
+from source.datasets.transforms import get_transforms
 from source.models import get_model
 from source.source.path_config import make_load_path
-from torchvision import transforms
+
+NOT_CIFAR_LIKE_DATASETS = [
+    DatasetName.TINY_IMAGENET.value,
+]
+BLURRED_DATASETS = [
+    DatasetName.CIFAR10_BLURRED.value,
+    DatasetName.CIFAR100_BLURRED.value,
+]
 
 
 def load_dataloader_for_extraction(
     training_dataset_name: str,
     extraction_dataset_name: str,
-) -> torch.utils.data.DataLoader:
-    """The function returns dataloader for extracting embeddings.
-    It takes into account proper transformations from training dataset,
-    and performs corresponding normalization.
+):
+    _, joint_transforms = get_transforms(training_dataset_name)
 
-    Args:
-        training_dataset_name (str): name of the dataset, used in training
-        extraction_dataset_name (str): name of the dataset,
-                            we want extract embeddings from
-
-    Returns:
-        torch.utils.data.DataLoader: correspinding test loader
-    """
-    if training_dataset_name in ["cifar10", "noisy_cifar10", "missed_class_cifar10"]:
-        _, ind_transforms = get_cifar10_transforms()
-    elif training_dataset_name in ["cifar100", "noisy_cifar100"]:
-        _, ind_transforms = get_cifar100_transforms()
-    else:
-        ValueError("No such dataset available")
-
-    if extraction_dataset_name in ["stl10", "lsun"]:
-        if training_dataset_name in ["cifar10", "cifar100", "svhn"]:
-            ind_transforms = transforms.Compose(
-                [transforms.Resize((32, 32))] + ind_transforms.transforms
-            )
-
-    if extraction_dataset_name == "cifar100":
-        dataset = torchvision.datasets.CIFAR100(
-            root="./datasets", train=False, download=True, transform=ind_transforms
+    if (extraction_dataset_name in NOT_CIFAR_LIKE_DATASETS) and (
+        training_dataset_name not in NOT_CIFAR_LIKE_DATASETS
+    ):
+        joint_transforms = transforms.Compose(
+            [transforms.Resize((32, 32))] + joint_transforms.transforms
         )
-    elif extraction_dataset_name == "blurred_cifar100":
-        ind_transforms = transforms.Compose(
+
+    if (training_dataset_name not in NOT_CIFAR_LIKE_DATASETS) and (
+        extraction_dataset_name in NOT_CIFAR_LIKE_DATASETS
+    ):
+        joint_transforms = transforms.Compose(
+            [transforms.Resize((64, 64))] + joint_transforms.transforms
+        )
+    if extraction_dataset_name in BLURRED_DATASETS:
+        joint_transforms = transforms.Compose(
             [transforms.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0))]
-            + ind_transforms.transforms
-        )
-        dataset = torchvision.datasets.CIFAR100(
-            root="./datasets", train=False, download=True, transform=ind_transforms
+            + joint_transforms.transforms
         )
 
-    elif extraction_dataset_name == "stl10":
-        dataset = torchvision.datasets.STL10(
-            root="./datasets", split="test", download=True, transform=ind_transforms
-        )
+    _, testloader = get_dataloaders(
+        dataset=extraction_dataset_name,
+        transform_train=joint_transforms,
+        transform_test=joint_transforms,
+    )
 
-    elif extraction_dataset_name in [
-        "cifar10",
-        "noisy_cifar10",
-        "missed_class_cifar10",
-    ]:
-        dataset = torchvision.datasets.CIFAR10(
-            root="./datasets", train=False, download=True, transform=ind_transforms
-        )
-
-    elif extraction_dataset_name == "blurred_cifar10":
-        ind_transforms = transforms.Compose(
-            [transforms.GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 2.0))]
-            + ind_transforms.transforms
-        )
-        dataset = torchvision.datasets.CIFAR10(
-            root="./datasets", train=False, download=True, transform=ind_transforms
-        )
-
-    elif extraction_dataset_name == "svhn":
-        dataset = torchvision.datasets.SVHN(
-            root="./datasets", split="test", download=True, transform=ind_transforms
-        )
-    else:
-        ValueError("No such dataset available")
-
-    testloader = torch.utils.data.DataLoader(dataset, shuffle=False, batch_size=100)
     return testloader
 
 

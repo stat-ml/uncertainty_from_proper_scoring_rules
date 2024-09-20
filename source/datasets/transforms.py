@@ -1,5 +1,6 @@
-import source.datasets.constants
 import torchvision.transforms as transforms
+
+import source.datasets.constants
 
 
 def get_transforms(dataset: str):
@@ -68,17 +69,21 @@ def get_cifar10_transforms() -> tuple[transforms.Compose, transforms.Compose]:
 def get_tiny_imagenet_transforms() -> tuple[transforms.Compose, transforms.Compose]:
     transform_train = transforms.Compose(
         [
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            transforms.Normalize(
+                (0.48023694, 0.44806704, 0.39750364),
+                (0.27643643, 0.26886328, 0.28158993),
+            ),
         ]
     )
 
     transform_test = transforms.Compose(
         [
             transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            transforms.Normalize(
+                (0.48023694, 0.44806704, 0.39750364),
+                (0.27643643, 0.26886328, 0.28158993),
+            ),
         ]
     )
 

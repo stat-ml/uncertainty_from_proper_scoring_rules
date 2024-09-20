@@ -1,47 +1,54 @@
+import json
+import os
+from pathlib import Path
+
+import numpy as np
 import torch
 from tqdm.auto import tqdm
-import os
-from source.source.evaluation_utils import (
-    save_dict,
-    load_dataloader_for_extraction,
-    get_additional_evaluation_metrics,
-)
+
 from pretrained_models.source.std_loading import cust_load_model
-from pretrained_models.source.utils import ROOT_PATH, make_model_load_path, make_logits_path
-import numpy as np
-import json
+from pretrained_models.source.utils import (
+    ROOT_PATH,
+    make_logits_path,
+    make_model_load_path,
+)
+from source.source.evaluation_utils import (
+    get_additional_evaluation_metrics,
+    load_dataloader_for_extraction,
+    load_dict,
+    save_dict,
+)
 
 
-# def save_additional_stats(
-#     dataset_name: str,
-#     model_id: int,
-# ):
-#     load_path = make_model_load_path(
-#         version=model_id,
-#         training_dataset=dataset_name,
-#     )
+def save_additional_stats(
+    dataset_name_: str,
+    model_id_: int,
+):
+    logits_path = make_logits_path(
+        version=model_id_,
+        training_dataset_name=dataset_name_,
+        extraction_dataset_name=dataset_name_,
+    )
 
-#     logits_path = make_logits_path(
-#         version=model_id,
-#         training_dataset_name=dataset_name,
-#         extraction_dataset_name=training_dataset_name,
-#     )
+    # Loading the dictionary from the file
+    loaded_dict = load_dict(load_path=logits_path)
 
-#     actual_acc = get_additional_evaluation_metrics(embeddings_dict=logits_path)
-#     actual_acc.update({"last_acc": last_acc / 100})
+    actual_acc = get_additional_evaluation_metrics(embeddings_dict=loaded_dict)
 
-#     try:
-#         with open(os.path.join(logits_path, "results_dict.json"), "w") as file:
-#             json.dump(
-#                 fp=file,
-#                 obj=actual_acc,
-#                 indent=4,
-#             )
-#     except OSError:
-#         import pdb
+    try:
+        with open(
+            os.path.join(Path(logits_path).parent, "results_dict.json"), "w"
+        ) as file:
+            json.dump(
+                fp=file,
+                obj=actual_acc,
+                indent=4,
+            )
+    except OSError:
+        import pdb
 
-#         pdb.set_trace()
-#         print("oh")
+        pdb.set_trace()
+        print("oh")
 
 
 def extract_embeddings(
@@ -94,8 +101,9 @@ def extract_embeddings(
 
 
 if __name__ == "__main__":
-    training_datasets = ["cifar10", "cifar100", "tiny_imagenet"]
-    model_ids = np.arange(2)
+    # training_datasets = ["cifar10", "cifar100", "tiny_imagenet"]
+    training_datasets = ["cifar100"]
+    model_ids = np.arange(1)
 
     # iterate over training datasets
     for training_dataset_name in training_datasets:
@@ -112,6 +120,7 @@ if __name__ == "__main__":
             "svhn",
             "blurred_cifar100",
             "blurred_cifar10",
+            "tiny_imagenet",
         ]:
             # different loss functions
             for model_id in model_ids:
@@ -133,12 +142,12 @@ if __name__ == "__main__":
                 )
                 print("Finished embeddings extraction!")
 
-                # if extraction_dataset_name == training_dataset_name:
-                #     print("Saving additional evaluation params...")
-                #     save_additional_stats(
-                #         dataset_name=training_dataset_name,
-                #         model_id=model_id,
-                #     )
+                if extraction_dataset_name == training_dataset_name:
+                    print("Saving additional evaluation params...")
+                    save_additional_stats(
+                        dataset_name_=training_dataset_name,
+                        model_id_=model_id,
+                    )
 
         # stats_dict = collect_stats(
         #     architecture=architecture,
