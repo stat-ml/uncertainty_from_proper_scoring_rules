@@ -6,8 +6,8 @@ from source.source.evaluation_utils import (
     load_dataloader_for_extraction,
     get_additional_evaluation_metrics,
 )
-from scripts.std_loading import cust_load_model
-from scripts.utils import ROOT_PATH, make_model_load_path, make_logits_path
+from pretrained_models.source.std_loading import cust_load_model
+from pretrained_models.source.utils import ROOT_PATH, make_model_load_path, make_logits_path
 import numpy as np
 import json
 

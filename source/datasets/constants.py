@@ -8,3 +8,4 @@ class DatasetName(Enum):
     CIFAR10_MISSED_LABEL = "cifar10_missed_label"
     CIFAR10_NOISY_LABEL = "cifar10_noisy_label"
     SVHN = "svhn"
+    TINY_IMAGENET = "tiny_imagenet"

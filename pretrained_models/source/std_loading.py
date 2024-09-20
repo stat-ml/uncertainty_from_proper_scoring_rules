@@ -1,7 +1,7 @@
 import os
 from safetensors.torch import load_file
-from scripts.resnet import resnet
-from scripts.utils import ROOT_PATH
+from pretrained_models.source.resnet import resnet
+from pretrained_models.source.utils import ROOT_PATH
 
 
 def cust_load_model(
