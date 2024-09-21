@@ -109,7 +109,7 @@ if __name__ == "__main__":
         # DatasetName.CIFAR10.value,
         DatasetName.CIFAR100.value,
     ]
-    model_ids = np.arange(1)
+    model_ids = np.arange(20)
 
     # iterate over training datasets
     for training_dataset_name in training_datasets:
