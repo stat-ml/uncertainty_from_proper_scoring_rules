@@ -1,6 +1,6 @@
 # Excluded path added manually
-pretrained_models/models
-pretrained_models/logits/
+torch_uncertainty_models/models
+torch_uncertainty_models/logits/
 
 external_repos/
 external_repos/pytorch_cifar100/*.sh

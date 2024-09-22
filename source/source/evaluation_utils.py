@@ -6,17 +6,10 @@ from typing import Dict
 import numpy as np
 import torch
 from sklearn.metrics import classification_report
-from source.losses.constants import LossName
-from source.models.constants import ModelName
-from source.source.data_utils import (
-    load_dataloader_for_extraction,
-    load_dict,
-    load_embeddings_dict,
-    load_model_checkpoint,
-    save_dict,
-)
-from source.source.path_config import make_load_path
-from tqdm.auto import tqdm
+
+from source.source.data_utils import load_dict, load_embeddings_dict
+from source.source.path_utils import make_load_path, make_logits_path
+from source.models.constants import ModelSource
 
 
 def get_additional_evaluation_metrics(embeddings_dict: Dict) -> Dict | str:
@@ -32,27 +25,48 @@ def save_additional_stats(
     dataset_name: str,
     loss_function_name: str,
     model_id: int,
+    model_source: str,
 ):
-    load_path = make_load_path(
-        dataset_name=dataset_name,
-        architecture=architecture,
-        loss_function_name=loss_function_name,
-        model_id=model_id,
-    )
+    match model_source:
+        case ModelSource.OUR_MODELS.value:
+            load_path = make_load_path(
+                dataset_name=dataset_name,
+                architecture=architecture,
+                loss_function_name=loss_function_name,
+                model_id=model_id,
+            )
 
-    embeddings_dict = load_embeddings_dict(
-        architecture=architecture,
-        loss_function_name=loss_function_name,
-        dataset_name=dataset_name,
-        model_id=model_id,
-    )
+            embeddings_dict = load_embeddings_dict(
+                architecture=architecture,
+                loss_function_name=loss_function_name,
+                dataset_name=dataset_name,
+                model_id=model_id,
+            )
 
-    checkpoint_path = os.path.join(load_path, "ckpt.pth")
-    last_acc = torch.load(checkpoint_path, map_location="cpu")["acc"]
-    if isinstance(last_acc, torch.Tensor):
-        last_acc = last_acc.cpu().detach().numpy()
-    actual_acc = get_additional_evaluation_metrics(embeddings_dict=embeddings_dict)
-    actual_acc.update({"last_acc": last_acc / 100})
+            checkpoint_path = os.path.join(load_path, "ckpt.pth")
+            last_acc = torch.load(checkpoint_path, map_location="cpu")["acc"]
+            if isinstance(last_acc, torch.Tensor):
+                last_acc = last_acc.cpu().detach().numpy()
+            actual_acc = get_additional_evaluation_metrics(
+                embeddings_dict=embeddings_dict
+            )
+            actual_acc.update({"last_acc": last_acc / 100})
+
+        case ModelSource.TORCH_UNCERTAINTY.value:
+            logits_path = make_logits_path(
+                model_id=model_id,
+                training_dataset_name=dataset_name,
+                extraction_dataset_name=dataset_name,
+                severity=None,
+                model_source=model_source,
+                architecture=architecture,
+                loss_function_name=loss_function_name,
+            )
+
+            # Loading the dictionary from the file
+            loaded_dict = load_dict(load_path=logits_path)
+
+            actual_acc = get_additional_evaluation_metrics(embeddings_dict=loaded_dict)
 
     try:
         with open(os.path.join(load_path, "results_dict.json"), "w") as file:
@@ -68,76 +82,13 @@ def save_additional_stats(
         print("oh")
 
 
-def extract_embeddings(
-    architecture: str,
-    loss_function_name: str,
-    training_dataset_name: str,
-    extraction_dataset_name: str,
-    model_id: int,
-    n_classes: int,
-):
-    """The function extracts and save embeddings for a specific model
-
-    Args:
-        architecture (str): _description_
-        loss_function_name (str): _description_
-        training_dataset_name (str): _description_
-        extraction_dataset_name (str): _description_
-        model_id (int): _description_
-        n_classes (int): _description_
-    """
-    load_path = make_load_path(
-        architecture=architecture,
-        dataset_name=training_dataset_name,
-        loss_function_name=loss_function_name,
-        model_id=model_id,
-    )
-    checkpoint_path = os.path.join(load_path, "ckpt.pth")
-    embeddings_path = os.path.join(
-        load_path, f"embeddings_{extraction_dataset_name}.pkl"
-    )
-
-    if os.path.exists(embeddings_path):
-        print("Embeddings are already extracted! Skipping...")
-        return
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = load_model_checkpoint(
-        architecture=architecture,
-        path=checkpoint_path,
-        device=device,
-        n_classes=n_classes,
-    )
-    model = model.to(device)
-
-    model.eval()
-
-    loader = load_dataloader_for_extraction(
-        training_dataset_name=training_dataset_name,
-        extraction_dataset_name=extraction_dataset_name,
-    )
-
-    output_embeddings = {}
-    output_embeddings["embeddings"] = []
-    output_embeddings["labels"] = []
-
-    with torch.no_grad():
-        for _, (inputs, targets) in tqdm(enumerate(loader)):
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            output_embeddings["embeddings"].append(outputs.cpu().numpy())
-            output_embeddings["labels"].append(targets.cpu().numpy())
-    output_embeddings["embeddings"] = np.vstack(output_embeddings["embeddings"])
-    output_embeddings["labels"] = np.hstack(output_embeddings["labels"])
-
-    # Saving the dictionary to a file using pickle
-    save_dict(save_path=embeddings_path, dict_to_save=output_embeddings)
-
-
 def collect_embeddings(
     model_ids: list | np.ndarray,
     architecture: str,
     loss_function_name: str,
     training_dataset_name: str,
+    severity: int | None,
+    model_source: str,
     list_extraction_datasets: list = [
         "cifar10",
         "cifar100",
@@ -169,16 +120,15 @@ def collect_embeddings(
     targets_per_dataset = defaultdict(list)
     for extraction_dataset_name in list_extraction_datasets:
         for model_id in model_ids:
-            path_to_model_folder = make_load_path(
-                architecture=architecture,
-                loss_function_name=loss_function_name,
-                dataset_name=training_dataset_name,
-                model_id=model_id,
-            )
-
             loaded_dict = load_dict(
-                os.path.join(
-                    path_to_model_folder, f"embeddings_{extraction_dataset_name}.pkl"
+                make_logits_path(
+                    model_id=model_id,
+                    training_dataset_name=training_dataset_name,
+                    extraction_dataset_name=extraction_dataset_name,
+                    severity=severity,
+                    model_source=model_source,
+                    architecture=architecture,
+                    loss_function_name=loss_function_name,
                 )
             )
 
@@ -228,71 +178,3 @@ def collect_stats(
                 current_dict_["macro avg"]["f1-score"]
             )
     return stats_dict
-
-
-if __name__ == "__main__":
-    architecture = ModelName.VGG19.value  #'vgg'  # 'resnet18' 'vgg'
-    training_datasets = [
-        # 'missed_class_cifar10',
-        "noisy_cifar10",
-        # "noisy_cifar100",
-    ]  # ['cifar10', 'cifar100']
-    model_ids = np.arange(20)
-
-    # iterate over training datasets
-    for training_dataset_name in training_datasets:
-        if training_dataset_name in ["cifar100", "noisy_cifar100"]:
-            n_classes = 100
-        else:
-            n_classes = 10
-
-        for extraction_dataset_name in [
-            "cifar10",
-            "cifar100",
-            "svhn",
-            "blurred_cifar100",
-            "blurred_cifar10",
-        ]:
-            # iterate over datasets from which we want get embeddings
-            for loss_function_name in [el.value for el in LossName]:
-                # different loss functions
-                for model_id in model_ids:
-                    # and different ensemble members
-                    print(
-                        (
-                            f"Training dataset: {training_dataset_name} ..."
-                            f"Extraction dataset: {extraction_dataset_name} "
-                            f"Loading {architecture}, "
-                            f"model_id={model_id} "
-                            f"and loss {loss_function_name}"
-                        )
-                    )
-                    print("Extracting embeddings....")
-                    extract_embeddings(
-                        training_dataset_name=training_dataset_name,
-                        extraction_dataset_name=extraction_dataset_name,
-                        architecture=architecture,
-                        model_id=model_id,
-                        n_classes=n_classes,
-                        loss_function_name=loss_function_name,
-                    )
-                    print("Finished embeddings extraction!")
-
-                    if extraction_dataset_name == training_dataset_name:
-                        print("Saving additional evaluation params...")
-                        save_additional_stats(
-                            dataset_name=training_dataset_name,
-                            architecture=architecture,
-                            model_id=model_id,
-                            loss_function_name=loss_function_name,
-                        )
-
-        # stats_dict = collect_stats(
-        #     architecture=architecture,
-        #     dataset_name=dataset_name,
-        #     loss_function_name=loss_function_name,
-        #     model_ids=model_ids,
-        # )
-        # print(stats_dict)
-
-    print("Finished!")

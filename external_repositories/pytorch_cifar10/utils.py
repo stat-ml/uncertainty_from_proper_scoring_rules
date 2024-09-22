@@ -11,7 +11,7 @@ import time
 import torch.nn as nn
 import torch.nn.init as init
 
-from models import VGG as VGG19_Cifar10, ResNet18
+from .models import VGG as VGG19_Cifar10, ResNet18
 from typing import Optional
 import random
 import numpy as np
@@ -115,7 +115,7 @@ def get_model(
                 net = VGG19_Cifar10("VGG19", n_classes)
             elif n_classes == 100:
                 sys.path.insert(0, "external_repos/pytorch_cifar100/models")
-                from vgg import vgg19_bn as VGG19_Cifar100
+                from .vgg import vgg19_bn as VGG19_Cifar100
 
                 net = VGG19_Cifar100()
             else:

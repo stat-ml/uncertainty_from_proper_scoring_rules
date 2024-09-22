@@ -1,16 +1,14 @@
 import os
 import pickle
 
-import torch
-import torch.nn as nn
-import torch.utils.data
+
 from torchvision import transforms
 
 from source.datasets.constants import DatasetName
 from source.datasets.loaders import get_dataloaders
 from source.datasets.transforms import get_transforms
-from source.models import get_model
-from source.source.path_config import make_load_path
+from source.source.path_utils import make_load_path
+
 
 NOT_CIFAR_LIKE_DATASETS = [
     DatasetName.TINY_IMAGENET.value,
@@ -107,28 +105,6 @@ def load_embeddings_dict(
     )
 
     # Loading the dictionary from the file
-    loaded_dict = load_dict(
-        load_path=os.path.join(file_path, f"embeddings_{dataset_name}.pkl")
-    )
+    loaded_dict = load_dict(load_path=os.path.join(file_path, f"{dataset_name}.pkl"))
 
     return loaded_dict
-
-
-def load_model_checkpoint(
-    architecture: str, path: str, n_classes: int, device
-) -> nn.Module:
-    """Load trained model checkpoint
-
-    Args:
-        architecture (str): _description_
-        path (str): _description_
-        n_classes (int): _description_
-        device (_type_): _description_
-
-    Returns:
-        nn.Module: _description_
-    """
-    checkpoint = torch.load(path, map_location=device)
-    model = get_model(model_name=architecture, n_classes=n_classes)
-    model.load_state_dict(checkpoint["net"])
-    return model

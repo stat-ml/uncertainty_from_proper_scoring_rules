@@ -291,7 +291,7 @@ if __name__ == "__main__":
         f"{arguments.model_name}/"
         f"{arguments.loss}/"
     )
-    pickled_dict_name = f"embeddings_{arguments.out_of_distribution_dataset}.pth"
+    pickled_dict_name = f"{arguments.out_of_distribution_dataset}.pth"
 
     if not os.path.isdir(path_to_save_logits):
         LOGGER.info(

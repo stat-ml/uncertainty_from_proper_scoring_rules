@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from pretrained_models.source.std_loading import cust_load_model
-from pretrained_models.source.utils import ROOT_PATH, make_model_load_path
+from torch_uncertainty_models.source.std_loading import cust_load_model
+from torch_uncertainty_models.source.utils import ROOT_PATH, make_model_load_path
 
 
 version = 10

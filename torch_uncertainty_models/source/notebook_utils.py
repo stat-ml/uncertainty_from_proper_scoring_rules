@@ -2,15 +2,14 @@ import os
 
 import numpy as np
 from tqdm.auto import tqdm
-
-from pretrained_models.source.utils import make_logits_path
 from source.source.postprocessing_utils import (
     UQ_FUNCS_WITH_NAMES,
     ENSEMBLE_COMBINATIONS,
 )
 from source.datasets.constants import DatasetName
-from source.models.constants import ModelName
+from source.source.path_config import make_logits_path, ModelSource
 from source.losses.constants import LossName
+from source.models.constants import ModelName
 from source.source.evaluation_utils import (
     load_dict,
     save_dict,
@@ -66,8 +65,11 @@ def collect_embeddings(
             load_logits_path = make_logits_path(
                 extraction_dataset_name=extraction_dataset_name,
                 training_dataset_name=training_dataset_name,
-                version=model_id,
+                model_id=model_id,
                 severity=None,
+                model_source=ModelSource.TORCH_UNCERTAINTY.value,
+                architecture=ModelName.RESNET18.value,
+                loss_function_name=LossName.CROSS_ENTROPY.value,
             )
             loaded_dict = load_dict(load_logits_path)
 
@@ -101,8 +103,11 @@ def get_new_models_sampled_combinations_uncertainty_scores(
     load_logits_path = make_logits_path(
         extraction_dataset_name="NaN",
         training_dataset_name=training_dataset_name,
-        version="NaN",
+        model_id="NaN",
         severity=None,
+        model_source=ModelSource.TORCH_UNCERTAINTY.value,
+        architecture=ModelName.RESNET18.value,
+        loss_function_name=LossName.CROSS_ENTROPY.value,
     )
     extracted_uq_measures_file_path = os.path.join(
         "/".join(load_logits_path.split("/")[:-3]),

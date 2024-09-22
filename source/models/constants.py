@@ -7,3 +7,8 @@ class ModelName(Enum):
     VGG13 = "vgg13"
     VGG16 = "vgg16"
     VGG19 = "vgg19"
+
+
+class ModelSource(Enum):
+    OUR_MODELS = "our_models"
+    TORCH_UNCERTAINTY = "torch_uncertainty"
