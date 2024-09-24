@@ -1,21 +1,18 @@
 import os
+from collections import defaultdict
 
 import numpy as np
 from tqdm.auto import tqdm
-from source.source.postprocessing_utils import (
-    UQ_FUNCS_WITH_NAMES,
-    ENSEMBLE_COMBINATIONS,
-)
+
 from source.datasets.constants import DatasetName
-from source.source.path_config import make_logits_path, ModelSource
 from source.losses.constants import LossName
 from source.models.constants import ModelName
-from source.source.evaluation_utils import (
-    load_dict,
-    save_dict,
+from source.source.evaluation_utils import load_dict, save_dict
+from source.source.path_config import ModelSource, make_logits_path
+from source.source.postprocessing_utils import (
+    ENSEMBLE_COMBINATIONS,
+    UQ_FUNCS_WITH_NAMES,
 )
-
-from collections import defaultdict
 
 
 def collect_embeddings(
@@ -49,16 +46,7 @@ def collect_embeddings(
     embeddings_per_dataset = defaultdict(list)
     targets_per_dataset = defaultdict(list)
 
-    if DatasetName.CIFAR10C.value in list_extraction_datasets:
-        list_extraction_datasets.remove(DatasetName.CIFAR10C.value)
-        list_extraction_datasets.extend(
-            [DatasetName.CIFAR10C.value + f"_{i}" for i in range(1, 6)]
-        )
-    if DatasetName.CIFAR100C.value in list_extraction_datasets:
-        list_extraction_datasets.remove(DatasetName.CIFAR100C.value)
-        list_extraction_datasets.extend(
-            [DatasetName.CIFAR100C.value + f"_{i}" for i in range(1, 6)]
-        )
+    list_extraction_datasets = remove_and_expand_list(list_extraction_datasets)
 
     for extraction_dataset_name in list_extraction_datasets:
         for model_id in model_ids:

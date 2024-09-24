@@ -7,9 +7,10 @@ import numpy as np
 import torch
 from sklearn.metrics import classification_report
 
+from source.datasets.constants import DatasetName
+from source.models.constants import ModelSource
 from source.source.data_utils import load_dict, load_embeddings_dict
 from source.source.path_utils import make_load_path, make_logits_path
-from source.models.constants import ModelSource
 
 
 def get_additional_evaluation_metrics(embeddings_dict: Dict) -> Dict | str:
@@ -87,7 +88,6 @@ def collect_embeddings(
     architecture: str,
     loss_function_name: str,
     training_dataset_name: str,
-    severity: int | None,
     model_source: str,
     list_extraction_datasets: list = [
         "cifar10",
@@ -125,7 +125,7 @@ def collect_embeddings(
                     model_id=model_id,
                     training_dataset_name=training_dataset_name,
                     extraction_dataset_name=extraction_dataset_name,
-                    severity=severity,
+                    severity=None,
                     model_source=model_source,
                     architecture=architecture,
                     loss_function_name=loss_function_name,

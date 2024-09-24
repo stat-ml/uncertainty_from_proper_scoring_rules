@@ -4,6 +4,9 @@ from functools import partial
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
+from tqdm.auto import tqdm
+
+from source.datasets.constants import DatasetName
 from source.losses.constants import LossName
 from source.metrics import (
     ApproximationType,
@@ -17,8 +20,22 @@ from source.metrics import (
 from source.models.constants import ModelName
 from source.source.data_utils import load_dict, save_dict
 from source.source.evaluation_utils import collect_embeddings, collect_stats
-from source.source.path_config import make_load_path
-from tqdm.auto import tqdm
+from source.source.path_utils import make_load_path
+
+
+def remove_and_expand_list(list_extraction_datasets: list[str]) -> list[str]:
+    if DatasetName.CIFAR10C.value in list_extraction_datasets:
+        list_extraction_datasets.remove(DatasetName.CIFAR10C.value)
+        list_extraction_datasets.extend(
+            [DatasetName.CIFAR10C.value + f"_{i}" for i in range(1, 6)]
+        )
+    if DatasetName.CIFAR100C.value in list_extraction_datasets:
+        list_extraction_datasets.remove(DatasetName.CIFAR100C.value)
+        list_extraction_datasets.extend(
+            [DatasetName.CIFAR100C.value + f"_{i}" for i in range(1, 6)]
+        )
+    return list_extraction_datasets
+
 
 ENSEMBLE_COMBINATIONS = [
     (0, 1, 2, 3),
@@ -255,6 +272,7 @@ def get_sampled_combinations_uncertainty_scores(
     architecture: ModelName,
     model_ids: np.ndarray,
     list_extraction_datasets: list[str],
+    model_source: str,
     temperature: float = 1.0,
     use_cached: bool = True,
 ) -> tuple[dict, dict, dict]:
@@ -292,6 +310,7 @@ def get_sampled_combinations_uncertainty_scores(
                 training_dataset_name=training_dataset_name,
                 list_extraction_datasets=list_extraction_datasets,
                 temperature=temperature,
+                model_source=model_source,
             )
 
             uq_results[uq_name][loss_function_name.value] = {}

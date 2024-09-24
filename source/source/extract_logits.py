@@ -142,28 +142,21 @@ if __name__ == "__main__":
                         # DatasetName.CIFAR100C.value,
                         DatasetName.CIFAR10C.value,
                     ]:
-                        for severity in range(1, 6):
-                            extract_logits(
-                                training_dataset_name=training_dataset_name,
-                                extraction_dataset_name=extraction_dataset_name,
-                                n_classes=n_classes,
-                                model_id=model_id,
-                                severity=severity,
-                                architecture=architecture,
-                                loss_function_name=loss_function_name,
-                                model_source=model_source,
-                            )
+                        severity_scores = np.arange(1, 6)
                     else:
+                        severity_scores = [None]
+                    for severity in severity_scores:
                         extract_logits(
                             training_dataset_name=training_dataset_name,
                             extraction_dataset_name=extraction_dataset_name,
                             n_classes=n_classes,
                             model_id=model_id,
-                            severity=None,
+                            severity=severity,
                             architecture=architecture,
                             loss_function_name=loss_function_name,
                             model_source=model_source,
                         )
+
                     print("Finished embeddings extraction!")
 
                     if extraction_dataset_name == training_dataset_name:
