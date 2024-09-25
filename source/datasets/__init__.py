@@ -15,7 +15,3 @@ __all__ = [
     "get_cifar100_transforms",
     "get_cifar10_transforms",
 ]
-
-
-def show_progress(block_num, block_size, total_size):
-    print(round(block_num * block_size / total_size * 100, 2), end="\r")
