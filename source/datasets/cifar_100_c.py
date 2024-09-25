@@ -35,7 +35,7 @@ ALLOWED_PERTURBATION_TYPES = {
 class CIFAR100C(torch.utils.data.Dataset):
     def __init__(
         self,
-        root: str = source.source.path_config.REPOSITORY_ROOT,
+        root: str = f"{source.source.path_config.REPOSITORY_ROOT}/data",
         perturbation_type: str = "brightness",
         train=True,
         transform=None,
