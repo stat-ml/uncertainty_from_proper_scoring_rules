@@ -276,7 +276,6 @@ def get_sampled_combinations_uncertainty_scores(
     temperature: float = 1.0,
     use_cached: bool = True,
 ) -> tuple[dict, dict, dict]:
-
     folder_path = make_logits_path(
         model_id="NaN",
         extraction_dataset_name="NaN",
