@@ -5,7 +5,8 @@ import torch.nn
 import source.models.constants
 import source.models.resnet
 import source.models.vgg
-from torch_uncertainty_models.source.std_loading import cust_load_model
+from torch_uncertainty.models.resnet import resnet
+from safetensors.torch import load_file
 from source.models.constants import ModelSource
 from source.source.path_utils import (
     make_load_path,
@@ -96,13 +97,14 @@ def load_model_from_source(
             model_path = make_model_load_path(
                 version=model_id, training_dataset=training_dataset_name
             )
-            model = cust_load_model(
-                style=(
-                    "cifar" if training_dataset_name.startswith("cifar") else "imagenet"
-                ),
+            model = resnet(
                 num_classes=n_classes,
+                in_channels=3,
                 arch=18,
-                path=model_path,
+                style="cifar",
                 conv_bias=False,
             )
+            state_dict = load_file(model_path)
+            model.load_state_dict(state_dict=state_dict)
+
     return model

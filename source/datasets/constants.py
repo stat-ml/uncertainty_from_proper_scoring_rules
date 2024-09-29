@@ -14,3 +14,7 @@ class DatasetName(Enum):
     CIFAR10_NOISY_LABEL = "cifar10_noisy_label"
     SVHN = "svhn"
     TINY_IMAGENET = "tiny_imagenet"
+    IMAGENET_R = "imagenet_r"
+    IMAGENET_C = "imagenet_c"
+    IMAGENET_A = "imagenet_a"
+    IMAGENET_O = "imagenet_o"

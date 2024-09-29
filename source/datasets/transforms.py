@@ -1,4 +1,7 @@
 import torchvision.transforms as transforms
+from torch_uncertainty.datamodules.classification.tiny_imagenet import (
+    TinyImageNetDataModule,
+)
 
 import source.datasets.constants
 
@@ -71,25 +74,12 @@ def get_cifar10_transforms() -> tuple[transforms.Compose, transforms.Compose]:
 
 
 def get_tiny_imagenet_transforms() -> tuple[transforms.Compose, transforms.Compose]:
-    transform_train = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Normalize(
-                (0.48023694, 0.44806704, 0.39750364),
-                (0.27643643, 0.26886328, 0.28158993),
-            ),
-        ]
+    data_module = TinyImageNetDataModule(
+        root="",
+        batch_size=1,
     )
-
-    transform_test = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Normalize(
-                (0.48023694, 0.44806704, 0.39750364),
-                (0.27643643, 0.26886328, 0.28158993),
-            ),
-        ]
-    )
+    transform_train = data_module.train_transform
+    transform_test = data_module.test_transform
 
     return transform_train, transform_test
 

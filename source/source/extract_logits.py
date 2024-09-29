@@ -84,15 +84,14 @@ def extract_logits(
 
 
 if __name__ == "__main__":
-    model_source = ModelSource.OUR_MODELS.value
+    # model_source = ModelSource.OUR_MODELS.value
+    model_source = ModelSource.TORCH_UNCERTAINTY.value
     architecture = ModelName.RESNET18.value  #'vgg'  # 'resnet18' 'vgg'
     training_datasets = [
         DatasetName.CIFAR10.value,
         DatasetName.CIFAR100.value,
-        # 'missed_class_cifar10',
-        # "noisy_cifar10",
-        # "noisy_cifar100",
-    ]  # ['cifar10', 'cifar100']
+        # DatasetName.TINY_IMAGENET.value,
+    ]
     model_ids = np.arange(20)
 
     # iterate over training datasets
@@ -110,13 +109,17 @@ if __name__ == "__main__":
             n_classes = 10
 
         for extraction_dataset_name in [
-            # DatasetName.CIFAR10.value,
-            # DatasetName.CIFAR100.value,
-            # DatasetName.SVHN.value,
-            # DatasetName.CIFAR10_BLURRED.value,
-            # DatasetName.CIFAR100_BLURRED.value,
+            DatasetName.CIFAR10.value,
+            DatasetName.CIFAR100.value,
+            DatasetName.SVHN.value,
+            DatasetName.CIFAR10_BLURRED.value,
+            DatasetName.CIFAR100_BLURRED.value,
             DatasetName.CIFAR10C.value,
             DatasetName.TINY_IMAGENET.value,
+            # DatasetName.IMAGENET_A.value,
+            # DatasetName.IMAGENET_O.value,
+            # DatasetName.IMAGENET_R.value,
+            # DatasetName.IMAGENET_C.value,
         ]:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [el.value for el in LossName]:
@@ -166,6 +169,7 @@ if __name__ == "__main__":
                             model_id=model_id,
                             architecture=architecture,
                             loss_function_name=loss_function_name,
+                            model_source=model_source,
                         )
 
         # stats_dict = collect_stats(

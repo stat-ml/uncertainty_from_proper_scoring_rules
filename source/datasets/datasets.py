@@ -28,7 +28,7 @@ def get_dataset_class_instance(
             return torchvision.datasets.CIFAR10
 
         case source.datasets.constants.DatasetName.CIFAR10C:
-            return lambda root, train, download, transform: torch_uncertainty_datasets.CIFAR10C(
+            return lambda root, train, transform: torch_uncertainty_datasets.CIFAR10C(
                 root=os.path.join(REPOSITORY_ROOT, "datasets"),
                 subset="all",
                 transform=transform,
@@ -43,12 +43,12 @@ def get_dataset_class_instance(
             return torchvision.datasets.CIFAR100
 
         case source.datasets.constants.DatasetName.CIFAR100C:
-            return lambda root, train, download, transform: torch_uncertainty_datasets.CIFAR100C(
+            return lambda root, train, transform: torch_uncertainty_datasets.CIFAR100C(
                 root=os.path.join(REPOSITORY_ROOT, "datasets"),
                 subset="all",
                 transform=transform,
                 severity=severity,
-                download=False,
+                download=True,
             )
 
         case source.datasets.constants.DatasetName.CIFAR100_BLURRED:
@@ -71,18 +71,52 @@ def get_dataset_class_instance(
             return CIFAR10NoisyLabels
 
         case source.datasets.constants.DatasetName.SVHN:
-            return lambda root, train, download, transform: torchvision.datasets.SVHN(
+            return lambda root, train, transform: torchvision.datasets.SVHN(
                 split="train" if train else "test",
                 root=root,
-                download=download,
+                download=True,
                 transform=transform,
             )
 
         case source.datasets.constants.DatasetName.TINY_IMAGENET:
-            return lambda root, train, download, transform: torch_uncertainty_datasets.TinyImageNet(
-                root=root,
+            return (
+                lambda root, train, transform: torch_uncertainty_datasets.TinyImageNet(
+                    root=root,
+                    split="train" if train else "val",
+                    transform=transform,
+                )
+            )
+
+        case source.datasets.constants.DatasetName.IMAGENET_R:
+            return lambda root, train, transform: torch_uncertainty_datasets.ImageNetR(
+                root=os.path.join(REPOSITORY_ROOT, "datasets"),
                 split="train" if train else "val",
                 transform=transform,
+                download=False,
+            )
+
+        case source.datasets.constants.DatasetName.IMAGENET_C:
+            return lambda root, train, transform: torch_uncertainty_datasets.ImageNetC(
+                root=os.path.join(REPOSITORY_ROOT, "datasets"),
+                split="train" if train else "val",
+                transform=transform,
+                download=False,
+            )
+
+        case source.datasets.constants.DatasetName.IMAGENET_A:
+            return lambda root, train, transform: torch_uncertainty_datasets.ImageNetA(
+                root=os.path.join(REPOSITORY_ROOT, "datasets"),
+                split="train" if train else "val",
+                transform=transform,
+                download=False,
+            )
+
+        case source.datasets.constants.DatasetName.IMAGENET_O:
+            return lambda root, train, transform: torch_uncertainty_datasets.ImageNetO(
+                root=os.path.join(REPOSITORY_ROOT, "datasets"),
+                split="train" if train else "val",
+                transform=transform,
+                download=False,
             )
 
         case _:

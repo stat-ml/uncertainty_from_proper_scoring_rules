@@ -1,16 +1,19 @@
 import json
 import os
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict
 
 import numpy as np
 import torch
 from sklearn.metrics import classification_report
 
-from source.datasets.constants import DatasetName
 from source.models.constants import ModelSource
 from source.source.data_utils import load_dict, load_embeddings_dict
-from source.source.path_utils import make_load_path, make_logits_path
+from source.source.path_utils import (
+    make_load_path,
+    make_logits_path,
+)
 
 
 def get_additional_evaluation_metrics(embeddings_dict: Dict) -> Dict | str:
@@ -68,7 +71,8 @@ def save_additional_stats(
             loaded_dict = load_dict(load_path=logits_path)
 
             actual_acc = get_additional_evaluation_metrics(embeddings_dict=loaded_dict)
-
+            load_path = Path(logits_path).resolve().parent
+            print(load_path)
     try:
         with open(os.path.join(load_path, "results_dict.json"), "w") as file:
             json.dump(

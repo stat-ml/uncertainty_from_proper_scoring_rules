@@ -1,6 +1,7 @@
-from source.source.path_config import REPOSITORY_ROOT
-from source.models.constants import ModelSource
 import os
+
+from source.models.constants import ModelSource
+from source.source.path_config import REPOSITORY_ROOT
 
 
 def make_load_path(
@@ -63,7 +64,7 @@ def get_model_folder(dataset_name: str):
         case "tiny_imagenet":
             return "tiny-imagenet-resnet18-0-1023"
         case _:
-            raise ValueError("No such dataset")
+            raise ValueError(f"No such dataset: {dataset_name}")
 
 
 def make_model_load_path(
@@ -92,6 +93,7 @@ def make_logits_path(
     match model_source:
         case ModelSource.TORCH_UNCERTAINTY.value:
             logits_dir = os.path.join(
+                REPOSITORY_ROOT,
                 "torch_uncertainty_models",
                 "logits",
                 training_dataset_name,

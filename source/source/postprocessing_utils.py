@@ -17,10 +17,10 @@ from source.metrics import (
     get_risk_approximation,
     posterior_predictive,
 )
-from source.models.constants import ModelName
+from source.models.constants import ModelName, ModelSource
 from source.source.data_utils import load_dict, save_dict
 from source.source.evaluation_utils import collect_embeddings, collect_stats
-from source.source.path_utils import make_load_path
+from source.source.path_utils import make_load_path, make_logits_path
 
 
 def remove_and_expand_list(list_extraction_datasets: list[str]) -> list[str]:
@@ -276,11 +276,15 @@ def get_sampled_combinations_uncertainty_scores(
     temperature: float = 1.0,
     use_cached: bool = True,
 ) -> tuple[dict, dict, dict]:
-    folder_path = make_load_path(
-        architecture=architecture.value,
-        dataset_name=training_dataset_name,
-        loss_function_name="NaN",
+
+    folder_path = make_logits_path(
         model_id="NaN",
+        extraction_dataset_name="NaN",
+        training_dataset_name=training_dataset_name,
+        model_source=model_source,
+        severity=None,
+        architecture=architecture,
+        loss_function_name="NaN",
     )
 
     extracted_embeddings_file_path = os.path.join(

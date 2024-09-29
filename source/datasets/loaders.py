@@ -35,7 +35,6 @@ def get_dataloaders(
         dataset=dataset_class(
             root=root_path,
             train=True,
-            download=True,
             transform=transform_train,
         ),
         batch_size=128,
@@ -46,11 +45,10 @@ def get_dataloaders(
         dataset=dataset_class(
             root=root_path,
             train=False,
-            download=True,
             transform=transform_test,
         ),
         batch_size=128,
-        shuffle=True,
+        shuffle=False,
     )
 
     return trainloader, testloader
