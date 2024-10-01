@@ -11,6 +11,46 @@ from source.source.evaluation_utils import save_additional_stats
 from source.source.path_utils import make_logits_path
 
 
+def get_lists_of_extracted_datasets(training_dataset_name: str) -> list:
+    if training_dataset_name == DatasetName.CIFAR10.value:
+        list_extraction_datasets = [
+            DatasetName.CIFAR10.value,
+            DatasetName.CIFAR100.value,
+            DatasetName.SVHN.value,
+            DatasetName.TINY_IMAGENET.value,
+            DatasetName.CIFAR10C.value,
+            DatasetName.CIFAR10_NOISY_LABEL.value,
+            # DatasetName.CIFAR10_BLURRED.value,
+            # DatasetName.CIFAR100_BLURRED.value,
+        ]
+    elif training_dataset_name == DatasetName.TINY_IMAGENET.value:
+        list_extraction_datasets = [
+            DatasetName.TINY_IMAGENET.value,
+            DatasetName.IMAGENET_A.value,
+            DatasetName.IMAGENET_R.value,
+            DatasetName.IMAGENET_O.value,
+            # DatasetName.IMAGENET_C.value,
+        ]
+    elif training_dataset_name == DatasetName.CIFAR100.value:
+        list_extraction_datasets = [
+            # DatasetName.CIFAR10.value,
+            # DatasetName.CIFAR100.value,
+            # DatasetName.SVHN.value,
+            DatasetName.CIFAR100_NOISY_LABEL.value,
+            # DatasetName.CIFAR100C.value,
+        ]
+    elif training_dataset_name == DatasetName.CIFAR100_NOISY_LABEL.value:
+        list_extraction_datasets = [
+            DatasetName.CIFAR100.value,
+        ]
+    elif training_dataset_name == DatasetName.CIFAR10_NOISY_LABEL.value:
+        list_extraction_datasets = [
+            DatasetName.CIFAR10.value,
+        ]
+
+    return list_extraction_datasets
+
+
 def extract_logits(
     training_dataset_name: str,
     extraction_dataset_name: str,
@@ -84,13 +124,15 @@ def extract_logits(
 
 
 if __name__ == "__main__":
-    # model_source = ModelSource.OUR_MODELS.value
-    model_source = ModelSource.TORCH_UNCERTAINTY.value
+    model_source = ModelSource.OUR_MODELS.value
+    # model_source = ModelSource.TORCH_UNCERTAINTY.value
     architecture = ModelName.RESNET18.value  #'vgg'  # 'resnet18' 'vgg'
     training_datasets = [
-        DatasetName.CIFAR10.value,
-        DatasetName.CIFAR100.value,
+        # DatasetName.CIFAR10.value,
         # DatasetName.TINY_IMAGENET.value,
+        # DatasetName.CIFAR100.value,
+        # DatasetName.CIFAR10_NOISY_LABEL.value,
+        DatasetName.CIFAR100_NOISY_LABEL.value,
     ]
     model_ids = np.arange(20)
 
@@ -108,19 +150,11 @@ if __name__ == "__main__":
         else:
             n_classes = 10
 
-        for extraction_dataset_name in [
-            DatasetName.CIFAR10.value,
-            DatasetName.CIFAR100.value,
-            DatasetName.SVHN.value,
-            DatasetName.CIFAR10_BLURRED.value,
-            DatasetName.CIFAR100_BLURRED.value,
-            DatasetName.CIFAR10C.value,
-            DatasetName.TINY_IMAGENET.value,
-            # DatasetName.IMAGENET_A.value,
-            # DatasetName.IMAGENET_O.value,
-            # DatasetName.IMAGENET_R.value,
-            # DatasetName.IMAGENET_C.value,
-        ]:
+        extraction_dataset_names = get_lists_of_extracted_datasets(
+            training_dataset_name=training_dataset_name
+        )
+
+        for extraction_dataset_name in extraction_dataset_names:
             # iterate over datasets from which we want get embeddings
             for loss_function_name in [el.value for el in LossName]:
                 if (model_source == ModelSource.TORCH_UNCERTAINTY.value) and (
@@ -142,7 +176,7 @@ if __name__ == "__main__":
                     print("Extracting embeddings....")
 
                     if extraction_dataset_name in [
-                        # DatasetName.CIFAR100C.value,
+                        DatasetName.CIFAR100C.value,
                         DatasetName.CIFAR10C.value,
                     ]:
                         severity_scores = np.arange(1, 6)

@@ -84,9 +84,9 @@ def load_model_from_source(
                 loss_function_name=loss_function_name,
             )
 
-            if os.path.exists(logits_path):
-                print("Embeddings are already extracted! Skipping...")
-                return
+            # if os.path.exists(logits_path):
+            #     print("Embeddings are already extracted! Skipping...")
+            #     return
             model = load_model_checkpoint(
                 architecture=architecture,
                 path=checkpoint_path,

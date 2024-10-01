@@ -25,11 +25,11 @@ def make_load_path(
         code_folder = "pytorch_cifar10"
         checkpoint_folder = "checkpoints"
 
-    elif dataset_name == "noisy_cifar10":
+    elif dataset_name == "cifar10_noisy_label":
         code_folder = "pytorch_cifar10"
         checkpoint_folder = "checkpoints_noisy_cifar10"
 
-    elif dataset_name == "noisy_cifar100":
+    elif dataset_name == "cifar100_noisy_label":
         code_folder = "pytorch_cifar100"
         checkpoint_folder = "checkpoints_noisy_cifar100"
 

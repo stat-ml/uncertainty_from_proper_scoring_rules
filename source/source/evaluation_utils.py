@@ -10,10 +10,7 @@ from sklearn.metrics import classification_report
 
 from source.models.constants import ModelSource
 from source.source.data_utils import load_dict, load_embeddings_dict
-from source.source.path_utils import (
-    make_load_path,
-    make_logits_path,
-)
+from source.source.path_utils import make_load_path, make_logits_path
 
 
 def get_additional_evaluation_metrics(embeddings_dict: Dict) -> Dict | str:
@@ -158,16 +155,32 @@ def collect_stats(
     dataset_name: str,
     architecture: str,
     loss_function_name,
+    model_source: str,
     model_ids: list | np.ndarray,
 ) -> dict:
     stats_dict = defaultdict(list)
     for model_id in model_ids:
-        load_path = make_load_path(
-            architecture=architecture,
-            loss_function_name=loss_function_name,
-            dataset_name=dataset_name,
-            model_id=model_id,
-        )
+        if model_source == ModelSource.OUR_MODELS.value:
+            load_path = make_load_path(
+                architecture=architecture,
+                loss_function_name=loss_function_name,
+                dataset_name=dataset_name,
+                model_id=model_id,
+            )
+        elif model_source == ModelSource.TORCH_UNCERTAINTY.value:
+            logits_path = make_logits_path(
+                model_id=model_id,
+                training_dataset_name=dataset_name,
+                extraction_dataset_name=dataset_name,
+                severity=None,
+                model_source=model_source,
+                architecture=architecture,
+                loss_function_name=loss_function_name,
+            )
+            load_path = Path(logits_path).resolve().parent
+        else:
+            raise ValueError(f"No such model source available!: {model_source}")
+
         with open(os.path.join(load_path, "results_dict.json"), "r") as file:
             current_dict_ = json.load(file)
             stats_dict["accuracy"].append(current_dict_["accuracy"])

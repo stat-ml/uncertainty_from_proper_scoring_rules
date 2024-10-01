@@ -94,6 +94,7 @@ def get_metrics_results(
     training_dataset_name: str,
     architecture: str,
     model_ids: np.ndarray,
+    model_source: str,
 ):
     """
     The function reads all the stats from the path and creates
@@ -107,6 +108,7 @@ def get_metrics_results(
             architecture=architecture,
             loss_function_name=loss_function_name.value,
             model_ids=model_ids,
+            model_source=model_source,
         )
 
     # Convert the nested dictionary to a pandas DataFrame for easier plotting
@@ -282,13 +284,13 @@ def get_sampled_combinations_uncertainty_scores(
         training_dataset_name=training_dataset_name,
         model_source=model_source,
         severity=None,
-        architecture=architecture,
+        architecture=architecture.value,
         loss_function_name="NaN",
     )
 
     extracted_embeddings_file_path = os.path.join(
         "/".join(folder_path.split("/")[:-3]),
-        "CENTRAL_extracted_information_for_notebook_combinations.pkl",
+        f"{training_dataset_name}_CENTRAL_extracted_information_for_notebook_combinations.pkl",
     )
 
     if use_cached and os.path.exists(extracted_embeddings_file_path):

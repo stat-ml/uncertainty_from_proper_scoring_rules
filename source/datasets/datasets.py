@@ -70,6 +70,9 @@ def get_dataset_class_instance(
         case source.datasets.constants.DatasetName.CIFAR10_NOISY_LABEL:
             return CIFAR10NoisyLabels
 
+        case source.datasets.constants.DatasetName.CIFAR100_NOISY_LABEL:
+            return CIFAR100NoisyLabels
+
         case source.datasets.constants.DatasetName.SVHN:
             return lambda root, train, transform: torchvision.datasets.SVHN(
                 split="train" if train else "test",
@@ -188,4 +191,56 @@ class CIFAR10NoisyLabels(torch.utils.data.Dataset):
 
     def __len__(self):
         # Return the length of the original CIFAR-10 dataset
+        return len(self.dataset)
+
+
+class CIFAR100NoisyLabels(torch.utils.data.Dataset):
+    def __init__(
+        self, root, train=True, transform=None, target_transform=None, download=False
+    ):
+        self.dataset = torchvision.datasets.CIFAR100(
+            root=root, train=train, download=download, transform=transform
+        )
+        self.target_transform = target_transform
+        # Pairs of labels to be swapped randomly
+        self.label_pairs = {
+            1: 7,
+            7: 1,
+            3: 8,
+            8: 3,
+            2: 5,
+            5: 2,
+            10: 20,
+            20: 10,
+            40: 50,
+            50: 40,
+            90: 99,
+            99: 90,
+            25: 75,
+            75: 25,
+            17: 71,
+            71: 17,
+            13: 31,
+            31: 13,
+            24: 42,
+            42: 24,
+        }
+
+    def __getitem__(self, index):
+        # Get an item from the original CIFAR-100 dataset
+        image, label = self.dataset[index]
+
+        # If the label is part of a pair,
+        # randomly assign one of the two paired labels
+        if label in self.label_pairs:
+            label = random.choice([label, self.label_pairs[label]])
+
+        # Apply any target transformations (if any)
+        if self.target_transform:
+            label = self.target_transform(label)
+
+        return image, label
+
+    def __len__(self):
+        # Return the length of the original CIFAR-100 dataset
         return len(self.dataset)

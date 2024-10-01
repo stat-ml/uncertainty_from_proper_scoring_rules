@@ -99,7 +99,7 @@ def get_new_models_sampled_combinations_uncertainty_scores(
     )
     extracted_uq_measures_file_path = os.path.join(
         "/".join(load_logits_path.split("/")[:-3]),
-        "CENTRAL_extracted_information_for_notebook_combinations.pkl",
+        f"{training_dataset_name}_CENTRAL_extracted_information_for_notebook_combinations.pkl",
     )
 
     if use_cached and os.path.exists(extracted_uq_measures_file_path):
