@@ -124,15 +124,15 @@ def extract_logits(
 
 
 if __name__ == "__main__":
-    model_source = ModelSource.OUR_MODELS.value
-    # model_source = ModelSource.TORCH_UNCERTAINTY.value
+    # model_source = ModelSource.OUR_MODELS.value
+    model_source = ModelSource.TORCH_UNCERTAINTY.value
     architecture = ModelName.RESNET18.value  #'vgg'  # 'resnet18' 'vgg'
     training_datasets = [
         # DatasetName.CIFAR10.value,
-        # DatasetName.TINY_IMAGENET.value,
+        DatasetName.TINY_IMAGENET.value,
         # DatasetName.CIFAR100.value,
         # DatasetName.CIFAR10_NOISY_LABEL.value,
-        DatasetName.CIFAR100_NOISY_LABEL.value,
+        # DatasetName.CIFAR100_NOISY_LABEL.value,
     ]
     model_ids = np.arange(20)
 

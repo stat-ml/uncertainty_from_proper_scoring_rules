@@ -1,5 +1,5 @@
 [project]
-name = "psrqu"
+name = "psruq"
 version = "0.0.1"
 description = "Code for uncertainty quantification with proper scoring rules."
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
     "scikit-learn>=1.5.2",
     "scipy>=1.14.1",
     "seaborn>=0.13.2",
-    "torch-uncertainty>=0.2.2.post0",
+    "torch-uncertainty",
     "torch>=2.4.1",
     "torchvision>=0.19.1",
     "tqdm>=4.66.5",
@@ -29,12 +29,12 @@ notebook = [
     "jupyter>=1.1.1",
     "jupyterlab>=4.2.5",
 ]
-torch_uncertainty = [
-    "torch-uncertainty>=0.2.1",
-]
 
 [tool.hatch.build.targets.wheel]
 packages = ["source"]
+
+[tool.uv.sources]
+torch-uncertainty = { git = "https://github.com/nkotelevskii/torch-uncertainty.git" }
 
 [build-system]
 requires = ["hatchling"]
