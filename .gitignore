@@ -24,7 +24,7 @@ data/
 imgs/
 tables/
 datasets/
-!source/datasets/
+!psruq/datasets/
 
 *.pth
 

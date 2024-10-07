@@ -1,5 +1,5 @@
 [project]
-name = "psruq"
+name = "psruq-python"
 version = "0.0.1"
 description = "Code for uncertainty quantification with proper scoring rules."
 readme = "README.md"
