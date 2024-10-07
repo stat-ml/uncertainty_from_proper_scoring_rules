@@ -2,13 +2,13 @@ import os
 
 import torch.nn
 
-import source.models.constants
-import source.models.resnet
-import source.models.vgg
+import psruq.models.constants
+import psruq.models.resnet
+import psruq.models.vgg
 from torch_uncertainty.models.resnet import resnet
 from safetensors.torch import load_file
-from source.models.constants import ModelSource
-from source.source.path_utils import (
+from psruq.models.constants import ModelSource
+from psruq.source.path_utils import (
     make_load_path,
     make_logits_path,
     make_model_load_path,
@@ -16,21 +16,21 @@ from source.source.path_utils import (
 
 
 def get_model(model_name: str, n_classes: int = 10) -> torch.nn.Module:
-    match source.models.constants.ModelName(model_name):
-        case source.models.constants.ModelName.RESNET18:
-            return source.models.resnet.ResNet18(n_classes=n_classes)
-        case source.models.constants.ModelName.VGG11:
-            return source.models.vgg.VGG(vgg_name="VGG11", n_classes=n_classes)
-        case source.models.constants.ModelName.VGG13:
-            return source.models.vgg.VGG(vgg_name="VGG13", n_classes=n_classes)
-        case source.models.constants.ModelName.VGG16:
-            return source.models.vgg.VGG(vgg_name="VGG16", n_classes=n_classes)
-        case source.models.constants.ModelName.VGG19:
-            return source.models.vgg.VGG(vgg_name="VGG19", n_classes=n_classes)
+    match psruq.models.constants.ModelName(model_name):
+        case psruq.models.constants.ModelName.RESNET18:
+            return psruq.models.resnet.ResNet18(n_classes=n_classes)
+        case psruq.models.constants.ModelName.VGG11:
+            return psruq.models.vgg.VGG(vgg_name="VGG11", n_classes=n_classes)
+        case psruq.models.constants.ModelName.VGG13:
+            return psruq.models.vgg.VGG(vgg_name="VGG13", n_classes=n_classes)
+        case psruq.models.constants.ModelName.VGG16:
+            return psruq.models.vgg.VGG(vgg_name="VGG16", n_classes=n_classes)
+        case psruq.models.constants.ModelName.VGG19:
+            return psruq.models.vgg.VGG(vgg_name="VGG19", n_classes=n_classes)
         case _:
             raise ValueError(
                 f"{model_name} --  no such neural network is available. ",
-                f"Available options are: {[element.value for element in source.models.constants.ModelName]}",
+                f"Available options are: {[element.value for element in psruq.models.constants.ModelName]}",
             )
 
 

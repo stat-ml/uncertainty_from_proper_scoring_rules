@@ -1,4 +1,4 @@
-from source.models.resnet import (
+from psruq.models.resnet import (
     ResNet,
     ResNet18,
     ResNet34,
@@ -6,7 +6,7 @@ from source.models.resnet import (
     ResNet101,
     ResNet152,
 )
-from source.models.vgg import VGG
+from psruq.models.vgg import VGG
 
 __all__ = [
     "ResNet",

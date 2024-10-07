@@ -5,9 +5,9 @@ import os
 import torch
 import tqdm
 from laplace import KronLLLaplace, LinkApprox, PredType
-from source.datasets import DatasetName, get_dataloaders
-from source.losses import LossName, get_loss_function
-from source.models import ModelName, get_model
+from psruq.datasets import DatasetName, get_dataloaders
+from psruq.losses import LossName, get_loss_function
+from psruq.models import ModelName, get_model
 
 LOGGER = logging.getLogger(__name__)
 PWD = os.path.dirname(os.path.realpath(__file__))

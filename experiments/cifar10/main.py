@@ -5,10 +5,10 @@ import os
 
 import torch
 import torch.optim as optim
-from source.datasets import get_dataloaders
-from source.losses import get_loss_function
-from source.models import get_model
-from source.utils import progress_bar
+from psruq.datasets import get_dataloaders
+from psruq.losses import get_loss_function
+from psruq.models import get_model
+from psruq.utils import progress_bar
 
 parser = argparse.ArgumentParser(description="PyTorch CIFAR10 Training")
 parser.add_argument("--lr", default=0.1, type=float, help="learning rate")

@@ -1,7 +1,7 @@
 import os
 
-from source.models.constants import ModelSource
-from source.source.path_config import REPOSITORY_ROOT
+from psruq.models.constants import ModelSource
+from psruq.source.path_config import REPOSITORY_ROOT
 
 
 def make_load_path(

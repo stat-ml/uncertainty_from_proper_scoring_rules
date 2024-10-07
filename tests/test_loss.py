@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from source.losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss
-from source.utils import targets2vector
+from psruq.losses import BrierScoreLoss, NegLogScore, SphericalScoreLoss
+from psruq.utils import targets2vector
 from torch.nn import CrossEntropyLoss
 
 

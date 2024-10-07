@@ -8,9 +8,9 @@ import numpy as np
 import torch
 from sklearn.metrics import classification_report
 
-from source.models.constants import ModelSource
-from source.source.data_utils import load_dict, load_embeddings_dict
-from source.source.path_utils import make_load_path, make_logits_path
+from psruq.models.constants import ModelSource
+from psruq.source.data_utils import load_dict, load_embeddings_dict
+from psruq.source.path_utils import make_load_path, make_logits_path
 
 
 def get_additional_evaluation_metrics(embeddings_dict: Dict) -> Dict | str:

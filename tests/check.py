@@ -1,11 +1,11 @@
 import numpy as np
-from source.metrics.create_specific_risks import (
+from psruq.metrics.create_specific_risks import (
     check_scalar_product,
     get_energy_inner,
     get_energy_outer,
     get_risk_approximation,
 )
-from source.metrics.constants import ApproximationType, GName, RiskType
+from psruq.metrics.constants import ApproximationType, GName, RiskType
 
 if __name__ == "__main__":
     N_members, N_objects, N_classes = 100, 5, 10  # Example dimensions

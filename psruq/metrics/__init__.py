@@ -1,11 +1,11 @@
-from source.metrics.constants import ApproximationType, GName, RiskType
-from source.metrics.create_specific_risks import (
+from psruq.metrics.constants import ApproximationType, GName, RiskType
+from psruq.metrics.create_specific_risks import (
     get_energy_inner,
     get_energy_outer,
     get_risk_approximation,
     get_central_prediction,
 )
-from source.metrics.utils import posterior_predictive
+from psruq.metrics.utils import posterior_predictive
 
 __all__ = [
     "get_specific_risk",

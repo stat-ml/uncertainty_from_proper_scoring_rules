@@ -1,5 +1,5 @@
 import numpy as np
-from source.metrics.utils import posterior_predictive, safe_softmax
+from psruq.metrics.utils import posterior_predictive, safe_softmax
 
 
 def log_score_central_prediction(logits: np.ndarray, T: float = 1.0) -> np.ndarray:

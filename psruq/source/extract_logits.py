@@ -2,13 +2,13 @@ import numpy as np
 import torch
 from tqdm.auto import tqdm
 
-from source.datasets.constants import DatasetName
-from source.losses.constants import LossName
-from source.models.constants import ModelName, ModelSource
-from source.models.load_models import load_model_from_source
-from source.source.data_utils import load_dataloader_for_extraction, save_dict
-from source.source.evaluation_utils import save_additional_stats
-from source.source.path_utils import make_logits_path
+from psruq.datasets.constants import DatasetName
+from psruq.losses.constants import LossName
+from psruq.models.constants import ModelName, ModelSource
+from psruq.models.load_models import load_model_from_source
+from psruq.source.data_utils import load_dataloader_for_extraction, save_dict
+from psruq.source.evaluation_utils import save_additional_stats
+from psruq.source.path_utils import make_logits_path
 
 
 def get_lists_of_extracted_datasets(training_dataset_name: str) -> list:

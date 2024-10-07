@@ -6,9 +6,9 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score
 from tqdm.auto import tqdm
 
-from source.datasets.constants import DatasetName
-from source.losses.constants import LossName
-from source.metrics import (
+from psruq.datasets.constants import DatasetName
+from psruq.losses.constants import LossName
+from psruq.metrics import (
     ApproximationType,
     GName,
     RiskType,
@@ -17,10 +17,10 @@ from source.metrics import (
     get_risk_approximation,
     posterior_predictive,
 )
-from source.models.constants import ModelName, ModelSource
-from source.source.data_utils import load_dict, save_dict
-from source.source.evaluation_utils import collect_embeddings, collect_stats
-from source.source.path_utils import make_load_path, make_logits_path
+from psruq.models.constants import ModelName, ModelSource
+from psruq.source.data_utils import load_dict, save_dict
+from psruq.source.evaluation_utils import collect_embeddings, collect_stats
+from psruq.source.path_utils import make_load_path, make_logits_path
 
 
 def remove_and_expand_list(list_extraction_datasets: list[str]) -> list[str]:

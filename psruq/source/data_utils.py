@@ -4,10 +4,10 @@ import pickle
 
 from torchvision import transforms
 
-from source.datasets.constants import DatasetName
-from source.datasets.loaders import get_dataloaders
-from source.datasets.transforms import get_transforms
-from source.source.path_utils import make_load_path
+from psruq.datasets.constants import DatasetName
+from psruq.datasets.loaders import get_dataloaders
+from psruq.datasets.transforms import get_transforms
+from psruq.source.path_utils import make_load_path
 
 
 NOT_CIFAR_LIKE_DATASETS = [

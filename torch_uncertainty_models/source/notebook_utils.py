@@ -4,12 +4,12 @@ from collections import defaultdict
 import numpy as np
 from tqdm.auto import tqdm
 
-from source.datasets.constants import DatasetName
-from source.losses.constants import LossName
-from source.models.constants import ModelName
-from source.source.evaluation_utils import load_dict, save_dict
-from source.source.path_config import ModelSource, make_logits_path
-from source.source.postprocessing_utils import (
+from psruq.datasets.constants import DatasetName
+from psruq.losses.constants import LossName
+from psruq.models.constants import ModelName
+from psruq.source.evaluation_utils import load_dict, save_dict
+from psruq.source.path_config import ModelSource, make_logits_path
+from psruq.source.postprocessing_utils import (
     ENSEMBLE_COMBINATIONS,
     UQ_FUNCS_WITH_NAMES,
 )

@@ -31,7 +31,7 @@ notebook = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["source"]
+packages = ["psruq"]
 
 [tool.uv.sources]
 torch-uncertainty = { git = "https://github.com/nkotelevskii/torch-uncertainty.git" }

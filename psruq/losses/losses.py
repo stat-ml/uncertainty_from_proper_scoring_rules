@@ -1,5 +1,5 @@
-import source.losses.constants
-import source.utils
+import psruq.losses.constants
+import psruq.utils
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -24,7 +24,7 @@ class SphericalScoreLoss(nn.Module):
         - Spherical Score loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = source.utils.targets2vector(
+        targets_vector = psruq.utils.targets2vector(
             targets=targets, n_classes=n_classes
         )
         if is_logit:
@@ -59,7 +59,7 @@ class NegLogScore(nn.Module):
         - NegLogScore loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = source.utils.targets2vector(
+        targets_vector = psruq.utils.targets2vector(
             targets=targets, n_classes=n_classes
         )
 
@@ -99,7 +99,7 @@ class BrierScoreLoss(nn.Module):
         - BrierScore loss: Tensor
         """
         n_classes = inputs_.size(1)
-        targets_vector = source.utils.targets2vector(
+        targets_vector = psruq.utils.targets2vector(
             targets=targets, n_classes=n_classes
         )
 
@@ -113,18 +113,18 @@ class BrierScoreLoss(nn.Module):
 
 
 def get_loss_function(loss_type: str) -> torch.nn.Module:
-    match source.losses.constants.LossName(loss_type):
-        case source.losses.constants.LossName.CROSS_ENTROPY:
+    match psruq.losses.constants.LossName(loss_type):
+        case psruq.losses.constants.LossName.CROSS_ENTROPY:
             loss = nn.CrossEntropyLoss()
-        case source.losses.constants.LossName.BRIER_SCORE:
+        case psruq.losses.constants.LossName.BRIER_SCORE:
             loss = BrierScoreLoss()
-        case source.losses.constants.LossName.SPHERICAL_SCORE:
+        case psruq.losses.constants.LossName.SPHERICAL_SCORE:
             loss = SphericalScoreLoss()
-        case source.losses.constants.LossName.NEG_LOG_SCORE:
+        case psruq.losses.constants.LossName.NEG_LOG_SCORE:
             loss = NegLogScore()
         case _:
             raise ValueError(
                 f"{loss_type} --  no such loss type available. ",
-                f"Available options are: {[element.value for element in source.losses.constants.LossName]}",
+                f"Available options are: {[element.value for element in psruq.losses.constants.LossName]}",
             )
     return loss

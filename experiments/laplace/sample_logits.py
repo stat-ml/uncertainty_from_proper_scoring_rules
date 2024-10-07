@@ -5,9 +5,9 @@ import os
 import torch
 import torch.utils.data
 from laplace import KronLLLaplace
-from source.datasets import DatasetName, get_dataset_class_instance, get_transforms
-from source.losses import LossName
-from source.models import ModelName, get_model
+from psruq.datasets import DatasetName, get_dataset_class_instance, get_transforms
+from psruq.losses import LossName
+from psruq.models import ModelName, get_model
 
 LOGGER = logging.getLogger(__name__)
 PWD = os.path.dirname(os.path.realpath(__file__))

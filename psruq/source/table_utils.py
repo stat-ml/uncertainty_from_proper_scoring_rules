@@ -3,7 +3,7 @@ from collections import defaultdict, namedtuple
 import matplotlib
 import numpy as np
 import pandas as pd
-from source.source.postprocessing_utils import (
+from psruq.source.postprocessing_utils import (
     get_missclassification_dataframe,
     get_ood_detection_dataframe,
     get_predicted_labels,

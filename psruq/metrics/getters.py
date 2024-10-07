@@ -1,14 +1,14 @@
 from functools import partial
 
 import numpy as np
-from source.metrics.central_predictions import (
+from psruq.metrics.central_predictions import (
     brier_score_central_prediction,
     log_score_central_prediction,
     spherical_score_central_prediction,
     zero_one_central_prediction,
 )
-from source.metrics.constants import ApproximationType, GName, RiskType
-from source.metrics.g_primitives import (
+from psruq.metrics.constants import ApproximationType, GName, RiskType
+from psruq.metrics.g_primitives import (
     brier_g,
     brier_grad_g,
     logscore_g,
@@ -18,8 +18,8 @@ from source.metrics.g_primitives import (
     zero_one_g,
     zero_one_grad_g,
 )
-from source.metrics.risk_primitives import bayes_risk, excess_risk, total_risk
-from source.metrics.utils import posterior_predictive, safe_softmax
+from psruq.metrics.risk_primitives import bayes_risk, excess_risk, total_risk
+from psruq.metrics.utils import posterior_predictive, safe_softmax
 
 
 def get_risk_function(risk_type: RiskType) -> callable:

@@ -1,5 +1,5 @@
-from source.losses.constants import LossName
-from source.losses.losses import (
+from psruq.losses.constants import LossName
+from psruq.losses.losses import (
     BrierScoreLoss,
     NegLogScore,
     SphericalScoreLoss,
