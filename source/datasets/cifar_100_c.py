@@ -2,9 +2,11 @@ import logging
 import os
 import tarfile
 import urllib.request
+from ctypes import ArgumentError
 
 import numpy
 import torch
+import torch.utils.data
 
 import source.source.path_config
 
@@ -32,16 +34,22 @@ ALLOWED_PERTURBATION_TYPES = {
 }
 
 
+# root (str) – Root directory of the datasets.
+# transform (callable, optional) – A function/transform that takes in a PIL image and returns a transformed version. E.g, transforms.RandomCrop. Defaults to None.
+# target_transform (callable, optional) – A function/transform that takes in the target and transforms it. Defaults to None.
+# subset (str) – The subset to use, one of all or the keys in cifarc_subsets.
+# severity (int) – The severity of the corruption, between 1 and 5.
+# download (bool, optional) – If True, downloads the dataset from the internet and puts it in root directory. If dataset is already downloaded, it is not downloaded again. Defaults to False.
 class CIFAR100C(torch.utils.data.Dataset):
     def __init__(
         self,
         root: str = f"{source.source.path_config.REPOSITORY_ROOT}/data",
-        perturbation_type: str = "brightness",
-        train=True,
         transform=None,
         target_transform=None,
-        download=False,
-        val=False,
+        subset: str = "brightness",
+        severity: int = 1,
+        train: bool = False,
+        download: bool = False,
     ):
         """
         CIFAR100C dataset https://zenodo.org/records/3555552
@@ -57,14 +65,22 @@ class CIFAR100C(torch.utils.data.Dataset):
             gaussian_noise, glass_blur, impulse_noise, jpeg_compression, motion_blur, pixelate,
             saturate, shot_noise, snow, spatter, speckle_noise, zoom_blur
 
-        If val is set last 10.000 images with corruption severity 5 will be used.
-        It will overwrite train flag.
+        This dataset does not contain train images, so it train is set to True it will return empty dataset.
 
         """
+        if severity < 1 or severity > 5:
+            raise ArgumentError(
+                "Variable severity can not be smaller the 1 or bigger then 5."
+            )
+
+        if train:
+            self.dataset = []
+            return
+
         path_to_data_folder = root
-        if perturbation_type not in ALLOWED_PERTURBATION_TYPES:
+        if subset not in ALLOWED_PERTURBATION_TYPES:
             raise RuntimeError(
-                f"{perturbation_type} is not an allowed perturbatino type."
+                f"{subset} is not an allowed perturbatino type."
                 f"Allowed types are: {', '.join(ALLOWED_PERTURBATION_TYPES)}."
             )
 
@@ -100,19 +116,11 @@ class CIFAR100C(torch.utils.data.Dataset):
                 path_to_folder_to_extract_archive=path_to_data_folder,
             )
 
-        if train:
-            tensor_indexes_start = 10000
-            tensor_indexes_end = 40000
-        else:
-            tensor_indexes_start = 0
-            tensor_indexes_end = 10000
-
-        if val:
-            tensor_indexes_start = 40000
-            tensor_indexes_end = 50000
+        tensor_indexes_start = (severity - 1) * 10000
+        tensor_indexes_end = (severity) * 10000
 
         path_to_corrupted_data_tensor = (
-            f"{path_to_data_folder}/CIFAR-100-C/{perturbation_type}.npy"
+            f"{path_to_data_folder}/CIFAR-100-C/{subset}.npy"
         )
         path_to_labels_tensor = f"{path_to_data_folder}/CIFAR-100-C/labels.npy"
         if not os.path.exists(path_to_corrupted_data_tensor):
