@@ -2,10 +2,12 @@ import logging
 import random
 
 import numpy as np
-import source.datasets.constants
-import source.datasets.transforms
 import torch.utils.data
 import torchvision
+
+import source.datasets.cifar_100_c
+import source.datasets.constants
+import source.datasets.transforms
 
 LOGGER = logging.getLogger(__name__)
 
@@ -47,6 +49,9 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
                 download=download,
                 transform=transform,
             )
+
+        case source.datasets.constants.DatasetName.CIFAR100C:
+            return source.datasets.cifar_100_c.CIFAR100C
 
         case _:
             raise ValueError(
