@@ -71,6 +71,12 @@ def parse_arguments() -> argparse.Namespace:
         help="Wether to show additional information or not.",
     )
     parser.add_argument(
+        "-t",
+        "--include_test",
+        action="store_true",
+        help="Wether to include inference on test part of the dataset or not.",
+    )
+    parser.add_argument(
         "-c",
         "--cuda",
         action="store_true",
@@ -152,7 +158,7 @@ if __name__ == "__main__":
         model.load_state_dict(checkpoint)
     LOGGER.info(f"Weights from {path_to_checkpoint} loaded.")
 
-    _, testloader = get_dataloaders(dataset=arguments.dataset)
+    trainloader, testloader = get_dataloaders(dataset=arguments.dataset)
     LOGGER.info(f"Dataset {arguments.dataset} loaded.")
 
     device = (
@@ -169,8 +175,9 @@ if __name__ == "__main__":
     }
 
     with torch.no_grad():
+        LOGGER.info(f"Computing logits on train part of the dataset.")
         for X, y in tqdm.tqdm(
-            iterable=testloader, total=len(testloader), disable=(not arguments.verbose)
+            iterable=trainloader, total=len(trainloader), disable=(not arguments.verbose)
         ):
             X = X.to(device)
             y = y.to(device)
@@ -180,11 +187,42 @@ if __name__ == "__main__":
                 for _ in range(number_of_samples)
             ], dim=1)
 
+            probabilities = torch.nn.functional.softmax(
+                batch_logits, dim=-1
+            )
+            distribution_prediction = probabilities.mean(dim=1)
+
             logits_dict["logits"] = torch.cat([
                 logits_dict["logits"],
                 batch_logits.to("cpu")
             ], dim=0)
     
+    if arguments.include_test:    
+        LOGGER.info(f"Computing logits on test loader.")
+        with torch.no_grad():
+            for X, y in tqdm.tqdm(
+                iterable=testloader, total=len(testloader), disable=(not arguments.verbose)
+            ):
+                X = X.to(device)
+                y = y.to(device)
+
+                batch_logits = torch.stack([
+                    model(X)
+                    for _ in range(number_of_samples)
+                ], dim=1)
+
+                probabilities = torch.nn.functional.softmax(
+                    batch_logits, dim=-1
+                )
+                distribution_prediction = probabilities.mean(dim=1)
+
+                logits_dict["logits"] = torch.cat([
+                    logits_dict["logits"],
+                    batch_logits.to("cpu")
+                ], dim=0)
+    else:
+        LOGGER.info(f"Computing logits on test part is skipped, if you want to include test, pass --include_test flag.")
+        
     architecture = model.__class__.__name__.lower()
     dataset_type = arguments.dataset
     experiment_folder_root = f"{REPOSITORY_ROOT}/experiments/inference_mc_dropout" 

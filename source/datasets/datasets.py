@@ -7,6 +7,7 @@ import torchvision
 
 import source.datasets.cifar_100_c
 import source.datasets.constants
+import source.datasets.tiny_image_net
 import source.datasets.transforms
 from source.source.path_config import REPOSITORY_ROOT
 
@@ -64,9 +65,23 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
                 transform=transform,
             )
 
+        case source.datasets.constants.DatasetName.SVHN:
+            return lambda root, train, download, transform: torchvision.datasets.SVHN(
+                split="train" if train else "test",
+                root=root,
+                download=download,
+                transform=transform,
+            )
+
         case source.datasets.constants.DatasetName.CIFAR100C:
             return source.datasets.cifar_100_c.CIFAR100C
 
+        case source.datasets.constants.DatasetName.TINY_IMAGE_NET:
+            return lambda root, train, download, transform: source.datasets.tiny_image_net.TinyImageNet(
+                transform=transform,
+                train=train
+            )
+        
         case _:
             raise ValueError(
                 f"{dataset} --  no such dataset available. ",
