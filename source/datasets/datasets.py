@@ -8,6 +8,7 @@ import torchvision
 import source.datasets.cifar_100_c
 import source.datasets.constants
 import source.datasets.transforms
+from source.source.path_config import REPOSITORY_ROOT
 
 LOGGER = logging.getLogger(__name__)
 
@@ -16,15 +17,24 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
     match source.datasets.constants.DatasetName(dataset):
         case source.datasets.constants.DatasetName.CIFAR10_ONE_BATCH:
             return lambda *args, **kwargs: torch.utils.data.Subset(
-                dataset=torchvision.datasets.CIFAR10(*args, **kwargs),
+                dataset=torchvision.datasets.CIFAR10(
+                    *args,
+                    **kwargs
+                ),
                 indices=list(range(128)),
             )
 
         case source.datasets.constants.DatasetName.CIFAR10:
-            return torchvision.datasets.CIFAR10
-
+            return lambda *args, **kwargs: torchvision.datasets.CIFAR10(
+                *args,
+                **kwargs,
+            )
+        
         case source.datasets.constants.DatasetName.CIFAR100:
-            return torchvision.datasets.CIFAR100
+            return lambda *args, **kwargs: torchvision.datasets.CIFAR100(
+                *args,
+                **kwargs,
+            )
 
         case source.datasets.constants.DatasetName.CIFAR10_MISSED_LABEL:
             if missed_label is None:
@@ -33,15 +43,19 @@ def get_dataset_class_instance(dataset: str, missed_label: int | None = None):
                     " missed label should be precised."
                 )
                 raise RuntimeError(error_message)
+            
             return lambda *args, **kwargs: CIFAR10MissedLabels(
                 *args,
-                **kwargs,
                 missed_label=missed_label,
+                **kwargs,
             )
 
         case source.datasets.constants.DatasetName.CIFAR10_NOISY_LABEL:
-            return CIFAR10NoisyLabels
-
+            return lambda *args, **kwargs: CIFAR10NoisyLabels(
+                *args,
+                **kwargs,
+            )
+        
         case source.datasets.constants.DatasetName.SVHN:
             return lambda root, train, download, transform: torchvision.datasets.SVHN(
                 split="train" if train else "test",

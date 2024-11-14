@@ -1,5 +1,4 @@
 import logging
-from ctypes import ArgumentError
 from typing import Optional
 
 import torch.utils.data
@@ -7,6 +6,7 @@ import torch.utils.data
 import source.datasets.constants
 import source.datasets.datasets
 import source.datasets.transforms
+from source.source.path_config import REPOSITORY_ROOT
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def get_dataloaders(
     trainloader = torch.utils.data.DataLoader(
         dataset=dataset_class(
             *dataloader_args,
-            root="./data",
+            root=f"{REPOSITORY_ROOT}/data",
             train=True,
             download=True,
             transform=transform_train,
@@ -42,7 +42,7 @@ def get_dataloaders(
     testloader = torch.utils.data.DataLoader(
         dataset=dataset_class(
             *dataloader_args,
-            root="./data",
+            root=f"{REPOSITORY_ROOT}/data",
             train=False,
             download=True,
             transform=transform_test,
