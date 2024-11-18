@@ -11,8 +11,8 @@ from source.source.path_config import REPOSITORY_ROOT
 
 LOGGER = logging.getLogger(__name__)
 PWD = os.path.dirname(os.path.realpath(__file__))
-ALLOWED_DROPOUT_MODELS = list(filter(
-    lambda x: 'dropout' in x,
+ALLOWED_FLIPOUT_MODELS = list(filter(
+    lambda x: 'flipout' in x,
     [element.value for element in ModelName]
 ))
                 
@@ -53,8 +53,8 @@ def parse_arguments() -> argparse.Namespace:
         "-m",
         "--model_name",
         type=str,
-        default="resnet18_dropout",
-        help=f"For now, only resnet18_dropout is supported.",
+        default="resnet18_flipout",
+        help=f"For now, only resnet18_flipout is supported.",
     )
     parser.add_argument(
         "-n",
@@ -117,7 +117,7 @@ def validate_arguments(arguments: argparse.Namespace) -> argparse.Namespace:
     except ValueError:
         raise ValueError(
             f"{arguments.model_name} --  no such model type available. "
-            + f"Available options are: {ALLOWED_DROPOUT_MODELS}"
+            + f"Available options are: {ALLOWED_FLIPOUT_MODELS}"
         )
     
     if arguments.number_of_samples <= 0:
@@ -157,10 +157,6 @@ if __name__ == "__main__":
         model.load_state_dict(checkpoint)
     LOGGER.info(f"Weights from {path_to_checkpoint} loaded.")
 
-    classifier = model.linear
-    model.dropout = torch.nn.Identity()
-    model.linear = torch.nn.Identity()
-
     trainloader, testloader = get_dataloaders(dataset=arguments.dataset)
     LOGGER.info(f"Dataset {arguments.dataset} loaded.")
 
@@ -170,15 +166,13 @@ if __name__ == "__main__":
     )
 
     model.to(device=device)
-    classifier.to(device=device)
-
     logits_dict = {
         "dataset": arguments.dataset,
         "model_type": arguments.model_name,
         "logits": torch.Tensor()
     }
-    masks = (torch.bernoulli(torch.ones((1, 5, 512)).fill_(0.5)) / 0.5).to(device)
-
+    model.eval()
+    model.eval()
     with torch.no_grad():
         LOGGER.info(f"Computing logits on train part of the dataset.")
         for X, y in tqdm.tqdm(
@@ -187,16 +181,11 @@ if __name__ == "__main__":
             X = X.to(device)
             y = y.to(device)
 
-            batch_features = torch.stack([
+            batch_logits = torch.stack([
                 model(X)
                 for _ in range(number_of_samples)
             ], dim=1)
-            batch_features_droped_out = batch_features * masks
-            batch_logits = classifier(batch_features_droped_out)
-            probabilities = torch.nn.functional.softmax(
-                batch_logits, dim=-1
-            )
-            distribution_prediction = probabilities.mean(dim=1)
+            
             logits_dict["logits"] = torch.cat([
                 logits_dict["logits"],
                 batch_logits.to("cpu")
@@ -211,16 +200,11 @@ if __name__ == "__main__":
                 X = X.to(device)
                 y = y.to(device)
 
-                batch_features = torch.stack([
+                batch_logits = torch.stack([
                     model(X)
                     for _ in range(number_of_samples)
                 ], dim=1)
-                batch_features_droped_out = batch_features * masks
-                batch_logits = classifier(batch_features_droped_out)
-                probabilities = torch.nn.functional.softmax(
-                    batch_logits, dim=-1
-                )
-                distribution_prediction = probabilities.mean(dim=1)
+                
                 logits_dict["logits"] = torch.cat([
                     logits_dict["logits"],
                     batch_logits.to("cpu")
@@ -230,7 +214,7 @@ if __name__ == "__main__":
 
     architecture = model.__class__.__name__.lower()
     dataset_type = arguments.dataset
-    experiment_folder_root = f"{REPOSITORY_ROOT}/experiments/inference_mc_dropout" 
+    experiment_folder_root = f"{REPOSITORY_ROOT}/experiments/inference_flipout" 
     output_folder_path = f"{experiment_folder_root}/results/{dataset_type}/{architecture}"
 
     if not os.path.exists(output_folder_path):
@@ -242,5 +226,6 @@ if __name__ == "__main__":
 
     LOGGER.info(f"Logits are saved to {output_dict_path}")
 
+    torch.cuda.empty_cache()
     torch.cuda.empty_cache()
     torch.cuda.empty_cache()

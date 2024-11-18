@@ -1,0 +1,9 @@
+DUQ
+* cifar10 vs cifar100: 0.853326845
+* cifar10 vs svhn: 0.8421201655654579
+* cifar10 vs TinyImageNet: 0.850411675
+
+DDU + GMM + LogSoftMax:
+* cifar10 vs cifar100: 0.8678732125
+* cifar10 vs svhn: 0.9689599060771359
+* cifar10 vs TinyImageNet:0.8675012325

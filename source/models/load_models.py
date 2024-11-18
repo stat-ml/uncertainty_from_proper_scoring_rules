@@ -3,6 +3,8 @@ import torch.nn
 import source.models.constants
 import source.models.resnet
 import source.models.resnet_dropout
+import source.models.resnet_duq
+import source.models.resnet_flipout
 import source.models.vgg
 
 
@@ -12,6 +14,10 @@ def get_model(model_name: str, n_classes: int = 10) -> torch.nn.Module:
             return source.models.resnet.ResNet18(n_classes=n_classes)
         case source.models.constants.ModelName.RESNET18_DROPOUT:
             return source.models.resnet_dropout.ResNet18Dropout(n_classes=n_classes)
+        case source.models.constants.ModelName.RESNET18_FLIPOUT:
+            return source.models.resnet_flipout.ResNet18Flipout(n_classes=n_classes)
+        case source.models.constants.ModelName.RESNET18_DUQ:
+            return source.models.resnet_duq.ResNet18DUQ(n_classes=n_classes)
         case source.models.constants.ModelName.VGG11:
             return source.models.vgg.VGG(vgg_name="VGG11", n_classes=n_classes)
         case source.models.constants.ModelName.VGG13:
