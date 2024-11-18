@@ -1,8 +1,9 @@
-import source.losses.constants
-import source.utils
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+import source.losses.constants
+import source.utils
 
 
 class SphericalScoreLoss(nn.Module):
@@ -111,6 +112,37 @@ class BrierScoreLoss(nn.Module):
         loss = torch.mean(torch.sum((predictions - targets_vector) ** 2, dim=-1))
         return loss
 
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=2, alpha=-1, reduction: str = "mean"):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+        self.reduction = reduction
+
+    def forward(self, inputs, targets): # B, N, # B, N
+        ce_loss = F.binary_cross_entropy(inputs, targets, reduction="none")
+        p_t = inputs * targets + (1 - inputs) * (1 - targets)
+        loss = ce_loss * ((1 - p_t) ** self.gamma)
+
+        if self.alpha >= 0:
+            alpha_t = self.alpha * targets + (1 - self.alpha) * (1 - targets)
+            loss = alpha_t * loss
+
+        # Check reduction option and return loss accordingly
+        if self.reduction == "none":
+            pass
+        elif self.reduction == "mean":
+            loss = loss.mean()
+        elif self.reduction == "sum":
+            loss = loss.sum()
+        else:
+            raise ValueError(
+                (
+                    f"Invalid Value for arg 'reduction': '{self.reduction}"
+                    "\n Supported reduction modes: 'none', 'mean', 'sum'"
+                )
+            )
+        return loss
 
 def get_loss_function(loss_type: str) -> torch.nn.Module:
     match source.losses.constants.LossName(loss_type):
@@ -120,8 +152,12 @@ def get_loss_function(loss_type: str) -> torch.nn.Module:
             loss = BrierScoreLoss()
         case source.losses.constants.LossName.SPHERICAL_SCORE:
             loss = SphericalScoreLoss()
-        case source.losses.constants.LossName.NEG_LOG_SCORE:
-            loss = NegLogScore()
+        case source.losses.constants.LossName.NLL:
+            loss = nn.NLLLoss()
+        case source.losses.constants.LossName.BINARY_CROSS_ENTROPY:
+            loss = nn.BCELoss()
+        case source.losses.constants.LossName.FOCAL_LOSS:
+            loss = FocalLoss()
         case _:
             raise ValueError(
                 f"{loss_type} --  no such loss type available. ",
