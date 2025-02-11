@@ -53,6 +53,3 @@ Folder notebooks/ have notebooks with data analysis of experiments.
 - ood_visualizations.ipynb: Creates visualizations for the OOD problem.
 - mis_analysis.ipynb: Generates plots for the misclassification problem.
 - mis_visualizations.ipynb: Creates visualizations for the misclassification problem.
-
-### Notes on Trained Models
-Due to a supplementary material size limit of 100MB, we cannot include the trained models in this repository. However, we are ready to provide them through any resource that maintains anonymity upon request.
