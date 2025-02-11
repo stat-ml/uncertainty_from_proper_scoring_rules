@@ -1,6 +1,6 @@
 # Predictive Uncertainty Quantification via Risk Decompositions for Strictly Proper Scoring Rules
 
-This repository contains code for the paper "Predictive Uncertainty Quantification via Risk Decompositions for Strictly Proper Scoring Rules," submitted to NeurIPS 2024.
+This repository contains code for the paper "Predictive Uncertainty Quantification via Risk Decompositions for Strictly Proper Scoring Rules," published at ICLR 2025.
 
 ### UV
 We use uv to manage dependecies. You can find an installation guide and documentation [here](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer).
